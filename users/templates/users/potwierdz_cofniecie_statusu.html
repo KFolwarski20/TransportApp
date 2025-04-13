@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+{% block title %}Potwierdź Cofnięcie Statusu{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card shadow-lg">
+            <div class="card-header bg-warning text-dark text-center">
+                <h3 class="fw-bold"><i class="fa-solid fa-exclamation-triangle"></i> Potwierdź cofnięcie statusu</h3>
+            </div>
+            <div class="card-body text-center">
+                <p>Czy na pewno chcesz cofnąć status zlecenia <strong>{{ zlecenie.miejsce_odb }} - {{ zlecenie.miejsce_dost }}</strong>
+                    do <strong>Nie rozpoczęte</strong>?<br>Usunie to przypisanego kierowcę oraz ciężarówkę</p>
+                <form method="post">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-warning">
+                        <i class="fa-solid fa-undo"></i> Tak, cofnij status
+                    </button>
+                    <a href="{% url 'zarzadzaj_zleceniami' %}" class="btn btn-secondary">Anuluj</a>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

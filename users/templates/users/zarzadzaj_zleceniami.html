@@ -1,0 +1,237 @@
+{% extends 'base.html' %}
+{% block title %}Zarządzanie Zleceniami{% endblock %}
+{% block page_class %}page-bg-light{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-12 col-lg-12">
+        <div class="card text-center">
+            <div class="card-header">
+                <h3 class="fw-bold">📦 Zarządzanie Zleceniami</h3>
+            </div>
+            <div class="card-body">
+                <a href="{% url 'dodaj_zlecenie' %}" class="btn btn-success mb-3">
+                    <i class="fa-solid fa-plus"></i> Dodaj Zlecenie
+                </a>
+
+                <!-- Zakładki -->
+                <ul class="nav nav-pills nav-fill mb-4 shadow-lg rounded-3 p-2 bg-light" id="zleceniaTab" role="tablist">
+                    <li class="nav-item">
+                        <button class="nav-link rounded-3 py-2 px-4 fw-bold text-dark bg-warning active"
+                                data-bs-toggle="tab" data-bs-target="#nieRozpoczete">
+                            <i class="fa-solid fa-clock me-2"></i> Nierozpoczęte
+                        </button>
+                    </li>
+                    <li class="nav-item">
+                        <button class="nav-link rounded-3 py-2 px-4 fw-bold text-dark"
+                                data-bs-toggle="tab" data-bs-target="#wRealizacji">
+                            <i class="fa-solid fa-spinner me-2"></i> W realizacji
+                        </button>
+                    </li>
+                    <li class="nav-item">
+                        <button class="nav-link rounded-3 py-2 px-4 fw-bold text-dark"
+                                data-bs-toggle="tab" data-bs-target="#zamkniete">
+                            <i class="fa-solid fa-check-circle me-2"></i> Zamknięte
+                        </button>
+                    </li>
+                </ul>
+
+                <div class="tab-content">
+                    <!-- Nie rozpoczęte -->
+                    <div class="tab-pane fade show active" id="nieRozpoczete">
+                        <div class="table-responsive">
+                            <table id="zleceniaTable1" class="table table-bordered table-hover align-middle">
+                                <thead class="table-dark text-center">
+                                    <tr>
+                                        <th>Nr zlecenia</th>
+                                        <th>Odbiór</th>
+                                        <th>Dostawa</th>
+                                        <th>Termin realizacji</th>
+                                        <th>Ilość ładunku (t)</th>
+                                        <th>Przychód (PLN)</th>
+                                        <th>Opcje</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="text-center">
+                                    {% for zlecenie in zlecenia_nie_rozpoczete %}
+                                    <tr>
+                                        <td class="fw-bold">{{ zlecenie.numer_zlecenia }}</td>
+                                        <td>{{ zlecenie.miejsce_odb }}</td>
+                                        <td>{{ zlecenie.miejsce_dost }}</td>
+                                        <td>{{ zlecenie.termin_realizacji|date:"Y-m-d H:i" }}</td>
+                                        <td class="fw-bold text-primary">{{ zlecenie.ilosc_ladunku }}</td>
+                                        <td class="fw-bold text-success">{{ zlecenie.przychod|floatformat:2 }} PLN</td>
+                                        <td>
+                                            <div class="d-flex justify-content-center gap-2">
+                                                <a href="{% url 'edytuj_zlecenie' zlecenie.id_zlec %}" class="btn btn-warning btn-sm">
+                                                    <i class="fa-solid fa-edit"></i> Edytuj
+                                                </a>
+                                                <a href="{% url 'usun_zlecenie' zlecenie.id_zlec %}" class="btn btn-danger btn-sm">
+                                                    <i class="fa-solid fa-trash"></i> Usuń
+                                                </a>
+                                                <a href="{% url 'przypisz_kierowce_ciezarowke' zlecenie.id_zlec %}" class="btn btn-primary btn-sm">
+                                                    <i class="fa-solid fa-cogs"></i> Realizuj
+                                                </a>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- W realizacji -->
+                    <div class="tab-pane fade" id="wRealizacji">
+                        <div class="table-responsive">
+                            <table id="zleceniaTable2" class="table table-bordered table-hover align-middle">
+                                <thead class="table-dark text-center">
+                                    <tr>
+                                        <th>Nr zlecenia</th>
+                                        <th>Odbiór</th>
+                                        <th>Dostawa</th>
+                                        <th>Kierowca</th>
+                                        <th>Ciężarówka</th>
+                                        <th>Przychód (PLN)</th>
+                                        <th>Przewidywany koszt (PLN)</th>
+                                        <th>Opcje</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="text-center">
+                                    {% for zlecenie in zlecenia_w_realizacji %}
+                                    <tr>
+                                        <td class="fw-bold">{{ zlecenie.numer_zlecenia }}</td>
+                                        <td>{{ zlecenie.miejsce_odb }}</td>
+                                        <td>{{ zlecenie.miejsce_dost }}</td>
+                                        <td class="fw-bold text-primary">{{ zlecenie.kierowca|default:"Brak" }}</td>
+                                        <td class="fw-bold text-primary">{{ zlecenie.ciezarowka|default:"Brak" }}</td>
+                                        <td class="fw-bold text-success">{{ zlecenie.przychod|floatformat:2 }} PLN</td>
+                                        <td class="fw-bold text-danger">{{ zlecenie.przewidywany_koszt|floatformat:2 }} PLN</td>
+                                        <td>
+                                            <div class="d-flex justify-content-center gap-2">
+                                                <a href="{% url 'szczegoly_zlecenia' zlecenie.id_zlec %}" class="btn btn-info btn-sm">
+                                                    <i class="fa-solid fa-info-circle"></i> Szczegóły
+                                                </a>
+                                                <a href="{% url 'cofnij_status_zlecenia' zlecenie.id_zlec %}" class="btn btn-secondary btn-sm">
+                                                    <i class="fa-solid fa-undo"></i> Wycofaj
+                                                </a>
+                                                <a href="{% url 'zamknij_zlecenie' zlecenie.id_zlec %}" class="btn btn-success btn-sm">
+                                                    <i class="fa-solid fa-check"></i> Zamknij
+                                                </a>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Zamknięte -->
+                    <div class="tab-pane fade" id="zamkniete">
+                        <!-- Dodajemy kontener do przewijania tabeli -->
+                        <div class="table-responsive">
+                            <table id="zleceniaTable3" class="table table-bordered table-hover">
+                                <thead class="table-dark text-center">
+                                    <tr>
+                                        <th>Nr zlecenia</th>
+                                        <th>Data zakończenia</th>
+                                        <th>Termin realizacji</th>
+                                        <th>Przychód (PLN)</th>
+                                        <th>Koszt (PLN)</th>
+                                        <th>Zysk (PLN)</th>
+                                        <th>Opcje</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="text-center">
+                                    {% for zlecenie in zlecenia_zamkniete %}
+                                    <tr>
+                                        <td class="fw-bold">{{ zlecenie.numer_zlecenia }}</td>
+                                        <td>{{ zlecenie.rzeczywista_data_zakonczenia|date:"Y-m-d H:i" }}</td>
+                                        <td>{{ zlecenie.termin_realizacji|date:"Y-m-d H:i" }}</td>
+                                        <td class="fw-bold text-primary">{{ zlecenie.przychod|floatformat:2 }} PLN</td>
+                                        <td class="fw-bold text-danger">{{ zlecenie.rzeczywisty_koszt|floatformat:2 }} PLN</td>
+
+                                        <!-- ✅ Dynamiczna kolorystyka dla zysku -->
+                                        <td class="fw-bold {% if zlecenie.zysk >= 0 %}text-success{% else %}text-danger{% endif %}">
+                                            {{ zlecenie.zysk|floatformat:2 }} PLN
+                                        </td>
+
+                                        <td>
+                                            <div class="d-flex justify-content-center gap-2">
+                                                <a href="{% url 'historia_zlecenia' zlecenie.id_zlec %}" class="btn btn-info btn-sm">
+                                                    <i class="fa-solid fa-clock-rotate-left"></i> Historia
+                                                </a>
+                                                <a href="{% url 'usun_zlecenie' zlecenie.id_zlec %}" class="btn btn-danger btn-sm">
+                                                    <i class="fa-solid fa-trash"></i> Usuń
+                                                </a>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Bootstrap JS do zakładek -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- DataTables -->
+<link rel="stylesheet" href="https://cdn.datatables.net/1.11.5/css/jquery.dataTables.min.css">
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
+<script>
+    $(document).ready(function () {
+        $('table[id^="zleceniaTable"]').DataTable({
+            "order": [[4, "desc"]],
+            "language": {
+                "search": "Szukaj:",
+                "lengthMenu": "Pokaż _MENU_ zleceń",
+                "info": "Wyświetlono _START_ do _END_ z _TOTAL_ zleceń",
+                "emptyTable": "Brak danych w tabeli",
+                "zeroRecords": "Nie znaleziono pasujących zleceń",
+                "infoEmpty": "Wyświetlono 0 do 0 z 0 zleceń",
+                "infoFiltered": "(filtrowane z _MAX_ wszystkich zleceń)",
+                "paginate": {
+                    "first": "Pierwsza",
+                    "last": "Ostatnia",
+                    "next": "Następna",
+                    "previous": "Poprzednia"
+                }
+            }
+        });
+    });
+</script>
+    <script>
+document.addEventListener("DOMContentLoaded", function () {
+    const buttons = document.querySelectorAll("#zleceniaTab .nav-link");
+
+    function updateTabColors() {
+        buttons.forEach(btn => {
+            btn.classList.remove("bg-warning", "bg-primary", "bg-success", "text-white");
+
+            if (btn.classList.contains("active")) {
+                if (btn.getAttribute("data-bs-target") === "#nieRozpoczete") {
+                    btn.classList.add("bg-warning", "text-white");
+                } else if (btn.getAttribute("data-bs-target") === "#wRealizacji") {
+                    btn.classList.add("bg-primary", "text-white");
+                } else if (btn.getAttribute("data-bs-target") === "#zamkniete") {
+                    btn.classList.add("bg-success", "text-white");
+                }
+            }
+        });
+    }
+
+    buttons.forEach(btn => btn.addEventListener("shown.bs.tab", updateTabColors));
+
+    // ✅ Domyślnie ustawiona aktywna zakładka "Nierozpoczęte"
+    updateTabColors();
+});
+</script>
+{% endblock %}

@@ -1,0 +1,94 @@
+{% extends 'base.html' %}
+{% block title %}Zarządzanie Ciężarówkami{% endblock %}
+{% block page_class %}page-bg-light{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-12 col-lg-12">
+        <div class="card text-center">
+            <div class="card-header">
+                <h3 class="fw-bold">🚛 Zarządzanie Ciężarówkami</h3>
+            </div>
+            <div class="card-body">
+                <a href="{% url 'dodaj_ciezarowke' %}" class="btn btn-success mb-3">
+                    <i class="fa-solid fa-plus"></i> Dodaj Ciężarówkę
+                </a>
+
+                <div class="table-responsive">
+                    <table id="ciezarowkiTable" class="table table-bordered table-hover align-middle">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>Marka</th>
+                                <th>Model</th>
+                                <th>Moc (KM)</th>
+                                <th>Data ostatniego serwisu</th>
+                                <th>Masa ładunku (t)</th>
+                                <th>Spalanie (l/100km)</th>
+                                <th>Opcje</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for ciezarowka in ciezarowki %}
+                            <tr>
+                                <td>{{ ciezarowka.ciez_marka }}</td>
+                                <td>{{ ciezarowka.ciez_model }}</td>
+                                <td>{{ ciezarowka.ciez_moc }}</td>
+                                <td>{{ ciezarowka.ciez_data_serwisu|date:"Y-m-d" }}</td>
+                                <td>{{ ciezarowka.ciez_masa_ladunku }}</td>
+                                <td>{{ ciezarowka.ciez_spalanie_na_100km }}</td>
+                                <td>
+                                  <div class="d-flex justify-content-center gap-2">
+                                    <a href="{% url 'szczegoly_ciezarowki' ciezarowka.ciez_id %}" class="btn btn-info btn-sm flex-fill">
+                                      <i class="fa-solid fa-id-card"></i> Szczegóły
+                                    </a>
+                                    <a href="{% url 'historia_serwisow' ciezarowka.ciez_id %}" class="btn btn-secondary btn-sm flex-fill">
+                                        <i class="fa-solid fa-screwdriver-wrench"></i> Serwisy
+                                    </a>
+                                    <a href="{% url 'czas_ciezarowki_redirect' ciezarowka.ciez_id %}" class="btn btn-primary btn-sm flex-fill">
+                                        <i class="fa-solid fa-business-time"></i> Czas
+                                    </a>
+                                      <a href="{% url 'edytuj_ciezarowke' ciezarowka.ciez_id %}" class="btn btn-warning btn-sm flex-fill">
+                                      <i class="fa-solid fa-edit"></i> Edytuj
+                                    </a>
+                                    <a href="{% url 'usun_ciezarowke' ciezarowka.ciez_id %}" class="btn btn-danger btn-sm flex-fill">
+                                      <i class="fa-solid fa-trash"></i> Usuń
+                                    </a>
+                                  </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div> <!-- Koniec table-responsive -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- DataTables -->
+<link rel="stylesheet" href="https://cdn.datatables.net/1.11.5/css/jquery.dataTables.min.css">
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
+<script>
+    $(document).ready(function () {
+        $('#ciezarowkiTable').DataTable({
+            "order": [[3, "desc"]], // Domyślne sortowanie po roku produkcji
+            "language": {
+                "search": "Szukaj:",
+                "lengthMenu": "Pokaż _MENU_ ciężarówek",
+                "info": "Wyświetlono _START_ do _END_ z _TOTAL_ ciężarówek",
+                "emptyTable": "Brak danych w tabeli",
+                "zeroRecords": "Nie znaleziono pasujących ciężarówek",
+                "infoEmpty": "Wyświetlono 0 do 0 z 0 ciężarówek",
+                "infoFiltered": "(filtrowane z _MAX_ wszystkich ciężarówek)",
+                "paginate": {
+                    "first": "Pierwsza",
+                    "last": "Ostatnia",
+                    "next": "Następna",
+                    "previous": "Poprzednia"
+                }
+            }
+        });
+    });
+</script>
+{% endblock %}

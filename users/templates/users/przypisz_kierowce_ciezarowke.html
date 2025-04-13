@@ -1,0 +1,330 @@
+{% extends 'base.html' %}
+{% block title %}Przypisz Kierowcę i Ciężarówkę{% endblock %}
+{% block page_class %}page-bg-light{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-10 col-lg-8">
+        <div class="card shadow-lg">
+            <div class="card-header bg-primary text-white text-center">
+                <h3 class="fw-bold"><i class="fa-solid fa-cogs"></i> Przypisz Kierowcę i Ciężarówkę</h3>
+            </div>
+            <div class="card-body">
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="alert alert-danger">{{ message }}</div>
+                    {% endfor %}
+                {% endif %}
+
+                <h4 class="text-center mb-4"><i class="fa-solid fa-road"></i> Odległość: {{ odleglosc }} km</h4>
+
+                <!-- 🗺️ Miejsce na mapę -->
+                <div id="map" style="height: 500px; border-radius: 15px; box-shadow: 0px 4px 8px rgba(0,0,0,0.2);" class="mt-3"></div>
+
+                <form method="post" class="needs-validation" novalidate>
+                    {% csrf_token %}
+                    <input type="hidden" id="id_zlec" value="{{ id_zlec }}">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Przewidywana data rozpoczęcia realizacji</label>
+                        <input type="datetime-local" name="data_rozpoczecia_realizacji" id="dataRozpoczecia" class="form-control" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Przewidywana data zakończenia realizacji</label>
+                        <input type="text" id="dataZakonczenia" class="form-control" readonly>
+                    </div>
+
+                    <div class="mb-3 alert alert-info text-center">
+                        <strong>⏱️ Przewidywany czas realizacji:</strong>
+                        <span id="czasRealizacji">—</span>
+                    </div>
+
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Wybierz kierowcę</label>
+                            <select class="form-select" name="kierowca" id="kierowca" required>
+                                <option value="">-- Wybierz kierowcę --</option>
+                                {% for item in kierowcy_z_kosztami %}
+                                    <option value="{{ item.id }}" data-koszt="{{ item.koszt }}">
+                                        {{ item.imie }} {{ item.nazwisko }} - {{ item.koszt|floatformat:2 }} PLN
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Wybierz ciężarówkę</label>
+                            <select class="form-select" name="ciezarowka" id="ciezarowka" required>
+                                <option value="">-- Wybierz ciężarówkę --</option>
+                                {% for item in ciezarowki_z_kosztami %}
+                                    <option value="{{ item.id }}" data-koszt="{{ item.koszt }}">
+                                        {{ item.marka }} {{ item.model }} - {{ item.koszt|floatformat:2 }} PLN
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+
+                    <div id="lacznyKoszt" class="card border-primary mb-3 mt-4" style="display:none;">
+                        <div class="card-body text-center">
+                            <h5 class="card-title text-primary fw-bold">💰 Przewidywany koszt zlecenia:</h5>
+                            <p class="card-text fs-3 fw-bold"><span id="kosztValue">0.00</span> PLN</p>
+                        </div>
+                    </div>
+
+                    <div class="mt-4 text-center">
+                        <button type="submit" name="confirm" class="btn btn-primary px-4">
+                            <i class="fa-solid fa-check"></i> Potwierdź
+                        </button>
+                        <a href="{% url 'zarzadzaj_zleceniami' %}" class="btn btn-outline-secondary px-4">Anuluj</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+    <!-- Wczytanie Leaflet -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const dataRozpoczecia = document.getElementById('dataRozpoczecia');
+    const dataZakonczenia = document.getElementById('dataZakonczenia');
+    const czasRealizacji = document.getElementById('czasRealizacji');
+    const kierowcaSelect = document.getElementById('kierowca');
+    const ciezarowkaSelect = document.getElementById('ciezarowka');
+    const lacznyKosztDiv = document.getElementById('lacznyKoszt');
+    const kosztValue = document.getElementById('kosztValue');
+
+    const id_zlec = document.getElementById('id_zlec')?.value;
+    const czasTrasySekundy = parseFloat("{{ czas_trasy_sek|default:0 }}");
+
+    let debounceTimeout = null;
+
+    /**
+     * ✅ Obliczanie przewidywanej daty zakończenia oraz czasu realizacji
+     */
+    function obliczDateZakonczenia() {
+        if (!dataRozpoczecia.value) {
+            dataZakonczenia.value = '';
+            czasRealizacji.textContent = '—';
+            return;
+        }
+
+        const startDate = new Date(dataRozpoczecia.value);
+        if (isNaN(startDate.getTime())) {
+            dataZakonczenia.value = '';
+            czasRealizacji.textContent = '—';
+            return;
+        }
+
+        const przewidywane_godziny = czasTrasySekundy / 3600;
+        const koniec = new Date(startDate.getTime() + przewidywane_godziny * 3600000);
+
+        dataZakonczenia.value = koniec.toLocaleString('pl-PL', {
+            day: '2-digit', month: '2-digit', year: 'numeric',
+            hour: '2-digit', minute: '2-digit'
+        });
+
+        const totalMinutes = Math.round(przewidywane_godziny * 60);
+        const dni = Math.floor(totalMinutes / 1440);
+        const godziny = Math.floor((totalMinutes % 1440) / 60);
+        const minuty = totalMinutes % 60;
+
+        let czasText = '';
+        if (dni > 0) czasText += dni + " dni ";
+        if (godziny > 0) czasText += godziny + " godz. ";
+        if (minuty > 0) czasText += minuty + " min.";
+        if (!czasText) czasText = "mniej niż minuta";
+
+        czasRealizacji.textContent = czasText;
+
+        // Pobranie dostępnych kierowców i ciężarówek
+        pobierzDostepnych();
+    }
+
+    /**
+     * ✅ Pobieranie dostępnych kierowców i ciężarówek na podstawie daty realizacji
+     */
+    function pobierzDostepnych() {
+    const data = dataRozpoczecia.value;
+    if (!data) return;
+
+    fetch(`/api/get_available_kierowcy_ciezarowki/${id_zlec}/?data_rozpoczecia=${encodeURIComponent(data)}`)
+        .then(response => response.json())
+        .then(data => {
+            console.log("🔹 Otrzymane dane z API:", data);
+
+            // 🔍 Czy mamy dostępne elementy?
+            if (!kierowcaSelect || !ciezarowkaSelect) {
+                console.error("❌ Brak elementów select w DOM!");
+                return;
+            }
+
+            // 🛑 Usuń stare opcje
+            kierowcaSelect.innerHTML = "";
+            ciezarowkaSelect.innerHTML = "";
+
+            // ➕ Dodaj placeholdery
+            const kierowcaPlaceholder = new Option("-- Wybierz kierowcę --", "");
+            const ciezarowkaPlaceholder = new Option("-- Wybierz ciężarówkę --", "");
+            kierowcaSelect.appendChild(kierowcaPlaceholder);
+            ciezarowkaSelect.appendChild(ciezarowkaPlaceholder);
+
+            // ✅ Dodaj kierowców
+            if (data.kierowcy.length === 0) {
+                kierowcaSelect.appendChild(new Option("Brak dostępnych kierowców", "", false, false)).disabled = true;
+            } else {
+                data.kierowcy.forEach(k => {
+                    const option = new Option(
+                        `${k.imie} ${k.nazwisko} - ${k.koszt.toFixed(2)} PLN/km`,
+                        k.id
+                    );
+                    option.dataset.koszt = k.koszt.toFixed(2);
+                    kierowcaSelect.appendChild(option);
+                });
+            }
+
+            // ✅ Dodaj ciężarówki
+            if (data.ciezarowki.length === 0) {
+                ciezarowkaSelect.appendChild(new Option("Brak dostępnych ciężarówek", "", false, false)).disabled = true;
+            } else {
+                data.ciezarowki.forEach(c => {
+                    const option = new Option(
+                        `${c.marka} ${c.model} - ${c.koszt.toFixed(2)} PLN`,
+                        c.id
+                    );
+                    option.dataset.koszt = c.koszt.toFixed(2);
+                    ciezarowkaSelect.appendChild(option);
+                });
+            }
+
+            kierowcaSelect.disabled = false;
+            ciezarowkaSelect.disabled = false;
+            updateKoszt(); // Aktualizacja kosztu
+        })
+        .catch(error => console.error("❌ Błąd pobierania danych:", error));
+}
+
+
+    /**
+     * ✅ Obliczanie łącznego kosztu zlecenia
+     */
+    function updateKoszt() {
+        const kierowcaKoszt = parseFloat(kierowcaSelect.selectedOptions[0]?.dataset.koszt || 0);
+        const ciezarowkaKoszt = parseFloat(ciezarowkaSelect.selectedOptions[0]?.dataset.koszt || 0);
+
+        if (kierowcaKoszt && ciezarowkaKoszt) {
+            kosztValue.textContent = (kierowcaKoszt + ciezarowkaKoszt).toFixed(2);
+            lacznyKosztDiv.style.display = 'block';
+        } else {
+            lacznyKosztDiv.style.display = 'none';
+        }
+    }
+
+    /**
+     * ✅ Nasłuchiwanie na zmiany i akcje użytkownika
+     */
+    dataRozpoczecia.addEventListener('input', () => {
+        clearTimeout(debounceTimeout);
+
+        // Zablokuj selecty i pokaż "ładowanie..."
+        kierowcaSelect.innerHTML = "";
+        ciezarowkaSelect.innerHTML = "";
+        kierowcaSelect.appendChild(new Option("⏳ Ładowanie kierowców...", "", false, false)).disabled = true;
+        ciezarowkaSelect.appendChild(new Option("⏳ Ładowanie ciężarówek...", "", false, false)).disabled = true;
+        kierowcaSelect.disabled = true;
+        ciezarowkaSelect.disabled = true;
+
+        debounceTimeout = setTimeout(() => {
+            obliczDateZakonczenia();
+        }, 2500);
+    });
+    kierowcaSelect.addEventListener('change', updateKoszt);
+    ciezarowkaSelect.addEventListener('change', updateKoszt);
+
+    // ⏳ Ustaw domyślną datę i załaduj API z opóźnieniem
+    const teraz = new Date();
+    teraz.setMinutes(teraz.getMinutes() - teraz.getTimezoneOffset());
+    dataRozpoczecia.value = teraz.toISOString().slice(0, 16);
+
+    // 🔒 Zablokuj selecty na start i pokaż "ładowanie..."
+    kierowcaSelect.innerHTML = "";
+    ciezarowkaSelect.innerHTML = "";
+    kierowcaSelect.appendChild(new Option("⏳ Ładowanie kierowców...", "", false, false)).disabled = true;
+    ciezarowkaSelect.appendChild(new Option("⏳ Ładowanie ciężarówek...", "", false, false)).disabled = true;
+    kierowcaSelect.disabled = true;
+    ciezarowkaSelect.disabled = true;
+
+    // 🕒 Załaduj dostępnych po 3 sekundach
+    setTimeout(() => {
+        obliczDateZakonczenia();
+    }, 5);
+});
+</script>
+
+    <script>
+document.addEventListener("DOMContentLoaded", function () {
+    console.log("📍 Inicjalizacja mapy...");
+
+    let startCoords = {{ start_coords|safe }};
+    let endCoords = {{ end_coords|safe }};
+    let routeGeometry = {{ route_geometry|safe }};
+
+    if (!startCoords || !endCoords || !routeGeometry || routeGeometry.length === 0) {
+        console.error("🚨 Brak danych do wyświetlenia trasy!");
+        return;
+    }
+
+    // Inicjalizacja mapy
+    const map = L.map("map", {
+        zoomControl: false,  // Usunięcie domyślnych przycisków zoomu (dodamy własne)
+        attributionControl: false,  // Ukrycie napisów o źródle mapy
+    }).setView(startCoords, 10);
+
+    // 📌 Warstwa OpenStreetMap (ładniejszy styl)
+    L.tileLayer("https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png", {
+        attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(map);
+
+    // 📍 Znacznik miejsca odbioru (czerwony)
+    L.marker([startCoords[1], startCoords[0]], {
+        icon: L.icon({
+            iconUrl: "https://maps.google.com/mapfiles/ms/icons/red-dot.png",
+            iconSize: [40, 40],
+            iconAnchor: [20, 40]
+        })
+    }).addTo(map).bindPopup("<b>📍 Miejsce odbioru</b><br>{{ zlecenie.miejsce_odb }}").openPopup();
+
+    // 📦 Znacznik miejsca dostawy (zielony)
+    L.marker([endCoords[1], endCoords[0]], {
+        icon: L.icon({
+            iconUrl: "https://maps.google.com/mapfiles/ms/icons/green-dot.png",
+            iconSize: [40, 40],
+            iconAnchor: [20, 40]
+        })
+    }).addTo(map).bindPopup("<b>📦 Miejsce dostawy</b><br>{{ zlecenie.miejsce_dost }}");
+
+    // 📌 Przekształcenie współrzędnych do formatu Leaflet ([lat, lon])
+    const routeLatLngs = routeGeometry.map(coord => [coord[1], coord[0]]);
+
+    // 🚚 Trasa przejazdu
+    const routeLine = L.polyline(routeLatLngs, {
+        color: "blue",
+        weight: 6,
+        opacity: 0.75,
+        lineJoin: "round",
+        dashArray: "10, 5"  // Dla efektu przerywanej trasy
+    }).addTo(map);
+
+    // 🎯 Centrowanie mapy na trasie
+    map.fitBounds(routeLine.getBounds(), { padding: [30, 30] });
+
+    // 🔍 Dodanie przycisków zoomowania
+    L.control.zoom({ position: "topright" }).addTo(map);
+});
+</script>
+
+{% endblock %}

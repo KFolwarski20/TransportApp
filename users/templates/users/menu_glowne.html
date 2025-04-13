@@ -1,0 +1,34 @@
+{% extends 'base.html' %}
+
+{% block title %}Menu Główne{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card text-center">
+                <div class="card-header">
+                    <h3>🚛 Witaj, {{ user.username }}!</h3>
+                </div>
+                <div class="card-body">
+                    <p class="lead">Wybierz jedną z opcji zarządzania:</p>
+                    <div class="d-grid gap-3">
+                        <a href="{% url 'zarzadzaj_kierowcami' %}" class="btn btn-primary btn-lg">
+                            <i class="fa-solid fa-user-tie"></i> Zarządzaj kierowcami
+                        </a>
+                        <a href="{% url 'zarzadzaj_ciezarowkami' %}" class="btn btn-secondary btn-lg">
+                            <i class="fa-solid fa-truck"></i> Zarządzaj ciężarówkami
+                        </a>
+                        <a href="{% url 'zarzadzaj_zleceniami' %}" class="btn btn-warning btn-lg">
+                            <i class="fa-solid fa-file-invoice"></i> Zarządzaj zleceniami
+                        </a>
+                        <a href="{% url 'analiza_finansowa' %}" class="btn btn-success btn-lg">
+                            <i class="fa-solid fa-chart-line"></i> Analiza finansowa
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

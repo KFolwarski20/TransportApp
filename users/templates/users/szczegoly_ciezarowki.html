@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+{% block title %}Szczegóły Ciężarówki{% endblock %}
+{% block page_class %}page-bg-light{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-xl-10 col-lg-11">
+            <div class="card shadow-lg rounded-4 border-0">
+                <div class="row g-0">
+                    <!-- LEWA SEKCJA -->
+                    <div class="col-md-4 bg-gradient bg-info text-white d-flex flex-column justify-content-center align-items-center text-center p-4 rounded-start-4">
+                        <i class="fa-solid fa-truck-front fa-4x mb-3"></i>
+                        <h4 class="fw-bold mb-1">{{ ciezarowka.ciez_marka }} {{ ciezarowka.ciez_model }}</h4>
+                        <span class="badge bg-light text-dark mt-2">Rok: {{ ciezarowka.ciez_rok_prod }}</span>
+                        <span class="badge bg-white text-primary mt-1">📋 {{ ciezarowka.ciez_nr_rejestr }}</span>
+                        <div class="mt-4">
+                            <p class="small">Ostatni serwis:</p>
+                            <p class="fw-semibold">{{ ciezarowka.ciez_data_serwisu }}</p>
+                        </div>
+                    </div>
+
+                    <!-- PRAWA SEKCJA -->
+                    <div class="col-md-8 p-4">
+                        <h5 class="fw-bold border-bottom pb-2 mb-3">Dane techniczne</h5>
+                        <div class="row row-cols-1 row-cols-md-2 g-3">
+                            <div><strong>Moc:</strong> {{ ciezarowka.ciez_moc }} KM</div>
+                            <div><strong>Przebieg:</strong> {{ ciezarowka.ciez_przebieg }} km</div>
+                            <div><strong>Data zakupu:</strong> {{ ciezarowka.ciez_data_zakupu }}</div>
+                            <div><strong>Spalanie (100 km):</strong> {{ ciezarowka.ciez_spalanie_na_100km }} l</div>
+                        </div>
+
+                        <h5 class="fw-bold border-bottom pb-2 mt-4 mb-3">⚖️ Parametry masy</h5>
+                        <div class="row row-cols-1 row-cols-md-2 g-3">
+                            <div><strong>Masa własna:</strong> {{ ciezarowka.ciez_masa_wlasna }} t</div>
+                            <div><strong>Masa ładunku:</strong> {{ ciezarowka.ciez_masa_ladunku }} t</div>
+                            <div><strong>Dopuszczalna masa całkowita:</strong> {{ ciezarowka.ciez_dop_masa_calk }} t</div>
+                        </div>
+
+                        <div class="mt-5 text-center">
+                            <a href="{% url 'zarzadzaj_ciezarowkami' %}" class="btn btn-secondary px-4">
+                                <i class="fa-solid fa-arrow-left me-1"></i> Powrót
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .badge {
+        font-size: 0.85rem;
+        padding: 0.4em 0.75em;
+        border-radius: 1rem;
+    }
+</style>
+{% endblock %}

@@ -1,0 +1,126 @@
+{% extends 'base.html' %}
+{% block title %}Zamknij Zlecenie{% endblock %}
+{% block page_class %}page-bg-light{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8 col-md-10">
+        <div class="card shadow-lg">
+            <div class="card-header bg-danger text-white text-center">
+                <h3 class="fw-bold"><i class="fa-solid fa-truck"></i> Zamknięcie Zlecenia</h3>
+            </div>
+            <div class="card-body">
+                <form method="post" id="zamknijZlecenieForm">
+                    {% csrf_token %}
+
+                    <!-- Ukryte pola z kosztami -->
+                    <input type="hidden" id="kosztKierowcyZaKm" name="koszt_kierowcy_za_km" value="{{ koszt_kierowcy_za_km }}">
+                    <input type="hidden" id="cenaPaliwa" name="cena_paliwa" value="{{ cena_paliwa }}">
+                    <input type="hidden" id="spalanieCiezarowki" name="spalanie_ciezarowki_na_100km" value="{{ spalanie_ciezarowki_na_100km }}">
+
+                    <!-- Rzeczywista data rozpoczecia i zakończenia -->
+                    <div class="mb-3">
+                        <label for="rzeczywistaDataRozpoczecia" class="form-label">
+                            <i class="fa-solid fa-calendar-check"></i> Rzeczywista data i godzina rozpoczęcia
+                        </label>
+                        <input type="datetime-local" class="form-control" id="rzeczywistaDataRozpoczecia" name="rzeczywista_data_rozpoczecia" required>
+
+                        <label for="rzeczywistaDataZakonczenia" class="form-label">
+                            <i class="fa-solid fa-calendar-check"></i> Rzeczywista data i godzina zakończenia
+                        </label>
+                        <input type="datetime-local" class="form-control" id="rzeczywistaDataZakonczenia" name="rzeczywista_data_zakonczenia" required>
+                    </div>
+
+                    <!-- Przejechane kilometry -->
+                    <div class="mb-3">
+                        <label for="przejechaneKm" class="form-label">
+                            <i class="fa-solid fa-road"></i> Przejechane km
+                        </label>
+                        <input type="number" step="0.1" min="0" class="form-control" id="przejechaneKm" name="przejechane_km" required>
+                    </div>
+
+                    <!-- Spalone litry -->
+                    <div class="mb-3">
+                        <label for="spaloneLitry" class="form-label">
+                            <i class="fa-solid fa-gas-pump"></i> Spalone litry
+                        </label>
+                        <input type="number" step="0.1" min="0" class="form-control" id="spaloneLitry" name="spalone_litry" required>
+                    </div>
+
+                    <!-- Koszty dodatkowe -->
+                    <div class="mb-3">
+                        <label for="kosztyDodatkowe" class="form-label">
+                            <i class="fa-solid fa-money-bill-wave"></i> Koszty dodatkowe
+                        </label>
+                        <input type="number" step="0.01" min="0" class="form-control" id="kosztyDodatkowe" name="koszty_dodatkowe" value="0">
+                    </div>
+
+                    <!-- Opis kosztów dodatkowych -->
+                    <div class="mb-3">
+                        <label for="opisDodatkowych" class="form-label">
+                            <i class="fa-solid fa-file-alt"></i> Opis kosztów dodatkowych
+                        </label>
+                        <textarea class="form-control" id="opisDodatkowych" name="opis_dodatkowe" rows="3"></textarea>
+                    </div>
+
+                    <div class="text-center mt-4">
+                        <button type="submit" class="btn btn-danger px-4">
+                            <i class="fa-solid fa-check"></i> Zamknij zlecenie
+                        </button>
+                        <a href="{% url 'zarzadzaj_zleceniami' %}" class="btn btn-secondary px-4">
+                            <i class="fa-solid fa-ban"></i> Anuluj
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- JavaScript do dynamicznego obliczania kosztów -->
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const przejechaneKmInput = document.getElementById("przejechaneKm");
+    const spaloneLitryInput = document.getElementById("spaloneLitry");
+    const kosztyDodatkoweInput = document.getElementById("kosztyDodatkowe");
+    const rzeczywistaDataRozpoczeciaInput = document.getElementById("rzeczywistaDataRozpoczecia");
+    const rzeczywistaDataZakonczeniaInput = document.getElementById("rzeczywistaDataZakonczenia");
+
+    const kosztKierowcySpan = document.getElementById("kosztKierowcy");
+    const kosztCiezarowkiSpan = document.getElementById("kosztCiezarowki");
+    const kosztDodatkowySpan = document.getElementById("kosztDodatkowy");
+    const kosztCalkowitySpan = document.getElementById("kosztCalkowity");
+
+    const podsumowanie = document.getElementById("podsumowanie");
+
+    // ✅ Pobranie wartości jako FLOAT (nie string!)
+    const kosztKierowcyZaKm = parseFloat(document.getElementById("kosztKierowcyZaKm").value.replace(",", "."));
+    const cenaPaliwa = parseFloat(document.getElementById("cenaPaliwa").value.replace(",", "."));
+
+    function updateKoszty() {
+        const przejechaneKm = parseFloat(przejechaneKmInput.value) || 0;
+        const spaloneLitry = parseFloat(spaloneLitryInput.value) || 0;
+        const kosztyDodatkowe = parseFloat(kosztyDodatkoweInput.value) || 0;
+
+        // ✅ Prawidłowe przeliczenie kosztu kierowcy
+        const kosztKierowcy = (przejechaneKm * kosztKierowcyZaKm).toFixed(2);
+        const kosztPaliwa = (spaloneLitry * cenaPaliwa).toFixed(2);
+        const kosztCalkowity = (parseFloat(kosztKierowcy) + parseFloat(kosztPaliwa) + kosztyDodatkowe).toFixed(2);
+
+        // Aktualizacja widoku
+        kosztKierowcySpan.textContent = kosztKierowcy;
+        kosztCiezarowkiSpan.textContent = kosztPaliwa;
+        kosztDodatkowySpan.textContent = kosztyDodatkowe.toFixed(2);
+        kosztCalkowitySpan.textContent = kosztCalkowity;
+
+        // Pokazanie podsumowania, jeśli wartości są większe od 0
+        podsumowanie.classList.toggle("d-none", kosztCalkowity <= 0);
+    }
+
+    // 🔄 Aktualizacja kosztów na inputach
+    przejechaneKmInput.addEventListener("input", updateKoszty);
+    spaloneLitryInput.addEventListener("input", updateKoszty);
+    kosztyDodatkoweInput.addEventListener("input", updateKoszty);
+});
+</script>
+{% endblock %}

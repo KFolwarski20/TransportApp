@@ -1,0 +1,186 @@
+{% extends 'base.html' %}
+{% block title %}Czas Pracy Kierowcy{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="card shadow-lg">
+        <div class="card-header bg-primary text-white text-center">
+            <h4 class="fw-bold"><i class="fa-solid fa-business-time"></i> Czas pracy kierowcy: {{ kierowca.kier_imie }} {{ kierowca.kier_nazwisko }} ({{ rok }})</h4>
+        </div>
+        <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <a href="{% url 'czas_kierowcy' kierowca.kier_id rok|add:'-1' %}" class="btn btn-outline-primary">
+                    <i class="fa-solid fa-chevron-left"></i> {{ rok|add:'-1' }}
+                </a>
+                <h5 class="mb-0 fw-bold">{{ rok }}</h5>
+                <a href="{% url 'czas_kierowcy' kierowca.kier_id rok|add:'1' %}" class="btn btn-outline-primary">
+                    {{ rok|add:'1' }} <i class="fa-solid fa-chevron-right"></i>
+                </a>
+            </div>
+
+            <!-- Wykres -->
+            <canvas id="chartCzasPracy" style="max-height: 400px;"></canvas>
+
+            <hr class="my-4">
+            <h5 class="fw-bold mb-3">
+                <i class="fa-solid fa-clock-rotate-left text-primary"></i> Historia zleceń
+            </h5>
+
+            <div class="table-responsive">
+                <table id="historiaTable" class="table table-hover table-borderless shadow-sm rounded">
+                    <thead class="table-primary text-center">
+                        <tr class="align-middle">
+                            <th class="text-dark fw-bold fs-6" scope="col">📅 Miesiąc</th>
+                            <th class="text-dark fw-bold fs-6" scope="col">📄 Zlecenia zrealizowane</th>
+                        </tr>
+                    </thead>
+                    <tbody class="table-group-divider">
+                        {% for miesiac, wpisy in historia.items %}
+                        <tr>
+                            <td class="fw-semibold text-center text-primary align-middle" style="min-width: 120px;">
+                                {{ miesiac }}
+                            </td>
+                            <td>
+                                {% if wpisy %}
+                                    <ul class="list-unstyled mb-0 ps-3">
+                                        {% for z in wpisy %}
+                                            <li class="mb-1">
+                                                <i class="fa-solid fa-truck text-muted me-1"></i>
+                                                <strong>#{{ z.numer_zlecenia }}</strong>:
+                                                {{ z.miejsce_odb }} ➝ {{ z.miejsce_dost }}
+                                                <span class="badge bg-secondary ms-2">{{ z.godziny|floatformat:1 }}h</span>
+                                            </li>
+                                        {% endfor %}
+                                    </ul>
+                                {% else %}
+                                    <span class="text-muted fst-italic">Brak zleceń</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+                <div class="mt-4 text-center">
+                    <a href="{% url 'zarzadzaj_kierowcami' %}" class="btn btn-secondary px-4">
+                        <i class="fa-solid fa-arrow-left"></i> Powrót
+                    </a>
+                </div>
+        </div>
+    </div>
+</div>
+
+<!-- Chart.js + annotation plugin -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@1.4.0/dist/chartjs-plugin-annotation.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const ctx = document.getElementById("chartCzasPracy").getContext("2d");
+    const miesiace = JSON.parse('{{ miesiace_labels|escapejs }}');
+    const godziny = JSON.parse('{{ godziny_labels|escapejs }}');
+
+    const LIMIT_H = 168;
+    const wykorzystanieProcent = godziny.map(g => g ? Math.round((g / LIMIT_H) * 100) : 0);
+    const limitArray = Array(miesiace.length).fill(LIMIT_H);
+
+    const gradient = ctx.createLinearGradient(0, 0, 0, 400);
+    gradient.addColorStop(0, "rgba(0, 123, 255, 0.8)");
+    gradient.addColorStop(1, "rgba(0, 123, 255, 0.2)");
+
+    new Chart(ctx, {
+        type: "bar",
+        data: {
+            labels: miesiace,
+            datasets: [
+                {
+                    label: "Godziny pracy",
+                    data: godziny,
+                    backgroundColor: gradient,
+                    borderRadius: 8,
+                    borderSkipped: false,
+                    datalabels: {
+                        anchor: 'end',
+                        align: 'top',
+                        formatter: (val, ctx) => `${val}h\n(${wykorzystanieProcent[ctx.dataIndex]}%)`,
+                        font: { weight: 'bold', size: 12 },
+                        color: '#333'
+                    }
+                },
+                {
+                    type: 'line',
+                    label: "Limit miesięczny (168h)",
+                    data: limitArray,
+                    borderColor: "red",
+                    borderWidth: 2,
+                    borderDash: [5, 5],
+                    pointRadius: 0,
+                    fill: false,
+                    datalabels: {
+                        display: false,
+                    }
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: { usePointStyle: true, pointStyle: 'rectRounded' }
+                },
+                tooltip: {
+                    callbacks: {
+                        label: ctx => {
+                            const h = ctx.raw;
+                            const perc = wykorzystanieProcent[ctx.dataIndex];
+                            return `${ctx.dataset.label}: ${h}h (${perc}%)`;
+                        }
+                    }
+                },
+                annotation: {
+                    annotations: {
+                        maxLine: {
+                            type: 'line',
+                            yMin: LIMIT_H,
+                            yMax: LIMIT_H,
+                            borderColor: 'red',
+                            borderWidth: 2,
+                            label: {
+                                content: 'Limit 168h',
+                                enabled: true,
+                                backgroundColor: 'red',
+                                color: 'white',
+                                position: 'end',
+                                font: { weight: 'bold' }
+                            }
+                        }
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    grid: { display: false },
+                    ticks: { maxRotation: 45 }
+                },
+                y: {
+                    beginAtZero: true,
+                    max: 200,
+                    title: {
+                        display: true,
+                        text: 'Godziny pracy (h)',
+                        font: { size: 14 }
+                    },
+                    ticks: {
+                        stepSize: 20
+                    }
+                }
+            }
+        },
+        plugins: [ChartDataLabels]
+    });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+{% block title %}Szczegóły Zlecenia{% endblock %}
+{% block page_class %}page-bg-light{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-10 col-lg-8">
+        <div class="card shadow-lg">
+            <div class="card-header bg-info text-white text-center">
+                <h3 class="fw-bold"><i class="fa-solid fa-info-circle"></i> Szczegóły Zlecenia</h3>
+            </div>
+            <div class="card-body">
+                {% if error_message %}
+                    <div class="alert alert-danger">
+                        {{ error_message }}
+                    </div>
+                {% endif %}
+
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item"><strong>Miejsce odbioru:</strong> {{ zlecenie.miejsce_odb }}</li>
+                    <li class="list-group-item"><strong>Miejsce dostawy:</strong> {{ zlecenie.miejsce_dost }}</li>
+                    <li class="list-group-item"><strong>Przychód:</strong> {{ zlecenie.przychod }} PLN</li>
+                    <li class="list-group-item"><strong>Przewidywany koszt:</strong> {{ zlecenie.przewidywany_koszt }} PLN</li>
+                    <li class="list-group-item"><strong>Przewidywany zysk:</strong> {{ przewidywany_zysk }} PLN</li>
+                    <li class="list-group-item"><strong>Ilość ładunku:</strong> {{ zlecenie.ilosc_ladunku }} t</li>
+                    <li class="list-group-item"><strong>Rodzaj towaru:</strong> {{ zlecenie.towar }}</li>
+                    <li class="list-group-item"><strong>Przewidywana data rozpoczęcia realizacji:</strong> {{ zlecenie.przewidywana_data_rozpoczecia }}</li>
+                    <li class="list-group-item"><strong>Przewidywana data zakończenia realizacji:</strong> {{ zlecenie.przewidywana_data_zakonczenia }}</li>
+                    <li class="list-group-item"><strong>Termin realizacji:</strong> {{ zlecenie.termin_realizacji }}</li>
+                    <li class="list-group-item"><strong>Kierowca:</strong> {{ zlecenie.kierowca|default:"Brak" }}</li>
+                    <li class="list-group-item"><strong>Ciężarówka:</strong> {{ zlecenie.ciezarowka|default:"Brak" }}</li>
+                    <li class="list-group-item"><strong>Odległość:</strong>
+                        {% if zlecenie.odleglosc_km %}
+                            {{ zlecenie.odleglosc_km }} km
+                        {% elif error_message %}
+                            <span class="text-danger">{{ error_message }}</span>
+                        {% else %}
+                            Brak danych
+                        {% endif %}
+                    </li>
+                </ul>
+                <div class="mt-4 text-center">
+                    <a href="{% url 'zarzadzaj_zleceniami' %}" class="btn btn-secondary px-4">Powrót</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

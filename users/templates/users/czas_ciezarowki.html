@@ -1,0 +1,206 @@
+{% extends 'base.html' %}
+{% block title %}Czas Pracy Ciężarówki{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="card shadow-lg">
+        <div class="card-header bg-primary text-white text-center">
+            <h4 class="fw-bold"><i class="fa-solid fa-business-time"></i> Czas pracy ciężarówki: {{ ciezarowka.ciez_marka }} {{ ciezarowka.ciez_model }} ({{ rok }})</h4>
+        </div>
+        <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <a href="{% url 'czas_ciezarowki' ciezarowka.ciez_id rok|add:'-1' %}" class="btn btn-outline-primary">
+                    <i class="fa-solid fa-chevron-left"></i> {{ rok|add:'-1' }}
+                </a>
+                <h5 class="mb-0 fw-bold">{{ rok }}</h5>
+                <a href="{% url 'czas_ciezarowki' ciezarowka.ciez_id rok|add:'1' %}" class="btn btn-outline-primary">
+                    {{ rok|add:'1' }} <i class="fa-solid fa-chevron-right"></i>
+                </a>
+            </div>
+
+            <!-- Wykres -->
+            <canvas id="chartCzasPracy" style="max-height: 400px;"></canvas>
+
+            <hr class="my-4">
+            <h5 class="fw-bold mb-3">
+                <i class="fa-solid fa-clock-rotate-left text-primary"></i> Historia zleceń
+            </h5>
+
+            <div class="table-responsive">
+                <table id="historiaTable" class="table table-hover table-borderless shadow-sm rounded">
+                    <thead class="table-primary text-center">
+                        <tr class="align-middle">
+                            <th class="text-dark fw-bold fs-6" scope="col">📅 Miesiąc</th>
+                            <th class="text-dark fw-bold fs-6" scope="col">📄 Zlecenia zrealizowane</th>
+                        </tr>
+                    </thead>
+                    <tbody class="table-group-divider">
+                        {% for miesiac, wpisy in historia.items %}
+                        <tr>
+                            <td class="fw-semibold text-center text-primary align-middle" style="min-width: 120px;">
+                                {{ miesiac }}
+                            </td>
+                            <td>
+                                {% if wpisy %}
+                                    <ul class="list-unstyled mb-0 ps-3">
+                                        {% for z in wpisy %}
+                                            <li class="mb-1">
+                                                <i class="fa-solid fa-truck-fast text-secondary me-1"></i>
+                                                <strong>#{{ z.numer_zlecenia }}</strong>: {{ z.miejsce_odb }} ➝ {{ z.miejsce_dost }}
+                                                <span class="badge bg-secondary ms-2">{{ z.godziny|floatformat:1 }}h</span>
+                                            </li>
+                                        {% endfor %}
+                                    </ul>
+                                {% else %}
+                                    <span class="text-muted fst-italic">Brak zleceń</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+                <div class="mt-4 text-center">
+                    <a href="{% url 'zarzadzaj_ciezarowkami' %}" class="btn btn-secondary px-4">
+                        <i class="fa-solid fa-arrow-left"></i> Powrót
+                    </a>
+                </div>
+        </div>
+    </div>
+</div>
+
+<!-- Chart.js + annotation plugin -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@1.4.0/dist/chartjs-plugin-annotation.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0"></script>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const ctx = document.getElementById("chartCzasPracy").getContext("2d");
+    const miesiace = JSON.parse('{{ miesiace_labels|escapejs }}');
+    const godziny = JSON.parse('{{ godziny_labels|escapejs }}');
+    const rok = parseInt('{{ rok }}');
+
+    function isLeapYear(y) {
+        return (y % 4 === 0 && y % 100 !== 0) || (y % 400 === 0);
+    }
+
+    function maxGodzinyDlaMiesiaca(index, year) {
+        if (index === 1) return isLeapYear(year) ? 696 : 672;
+        if ([3, 5, 8, 10].includes(index)) return 720;
+        return 744;
+    }
+
+    const maxGodziny = miesiace.map((_, i) => maxGodzinyDlaMiesiaca(i, rok));
+    const wykorzystanieProcent = godziny.map((g, i) => maxGodziny[i] > 0 ? ((g / maxGodziny[i]) * 100).toFixed(1) : 0);
+
+    const gradient = ctx.createLinearGradient(0, 0, 0, 400);
+    gradient.addColorStop(0, '#00c9a7');
+    gradient.addColorStop(1, '#4fc1e8');
+
+    new Chart(ctx, {
+        type: "bar",
+        data: {
+            labels: miesiace,
+            datasets: [
+                {
+                    type: 'bar',
+                    label: "Czas pracy",
+                    data: godziny,
+                    backgroundColor: gradient,
+                    borderColor: '#0cb5a9',
+                    borderWidth: 1,
+                    borderRadius: 10,
+                    barPercentage: 0.6,
+                    categoryPercentage: 0.8,
+                    datalabels: {
+                        anchor: 'end',
+                        align: 'top',
+                        formatter: (value, ctx) => wykorzystanieProcent[ctx.dataIndex] + '%',
+                        backgroundColor: '#0cb5a9',
+                        borderRadius: 4,
+                        color: '#fff',
+                        font: {
+                            weight: 'bold',
+                            size: 12
+                        },
+                        padding: 4
+                    }
+                },
+                {
+                    type: 'line',
+                    label: "Maksymalna wydajność",
+                    data: maxGodziny,
+                    borderColor: "#6610f2",
+                    borderWidth: 3,
+                    pointBackgroundColor: "#6610f2",
+                    pointRadius: 5,
+                    tension: 0.4,
+                    datalabels: {
+                        display: true,
+                        anchor: 'end',
+                        align: 'bottom',
+                        formatter: value => `${value}h`,
+                        color: '#6610f2',
+                        font: {
+                            weight: 'bold',
+                            size: 11
+                        },
+                        padding: 10
+                    }
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    display: true,
+                    position: 'top',
+                    labels: {
+                        font: { size: 14, weight: 'bold' }
+                    },
+                },
+                tooltip: {
+                    backgroundColor: '#333',
+                    borderColor: '#888',
+                    borderWidth: 1,
+                    padding: 12,
+                    titleFont: { size: 14 },
+                    bodyFont: { size: 13 },
+                    callbacks: {
+                        label: function (ctx) {
+                            const g = ctx.raw;
+                            const max = maxGodziny[ctx.dataIndex];
+                            const percent = ((g / max) * 100).toFixed(1);
+                            return `${ctx.dataset.label}: ${g}h (${percent}%)`;
+                        }
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    title: {
+                        display: true,
+                        text: 'Liczba godzin',
+                        font: { size: 16 }
+                    },
+                    grid: { color: 'rgba(0,0,0,0.05)' },
+                    ticks: { stepSize: 50 }
+                },
+                x: {
+                    ticks: { font: { size: 13 } },
+                    grid: { display: false }
+                }
+            },
+            animation: {
+                duration: 1500,
+                easing: 'easeOutQuart'
+            }
+        },
+        plugins: [ChartDataLabels]
+    });
+});
+</script>
+{% endblock %}

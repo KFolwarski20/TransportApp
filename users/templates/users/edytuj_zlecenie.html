@@ -1,0 +1,67 @@
+{% extends 'base.html' %}
+{% block title %}Edytuj Zlecenie{% endblock %}
+{% block page_class %}page-bg-light{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-10 col-lg-8">
+        <div class="card shadow-lg">
+            <div class="card-header bg-light text-dark text-center">
+                <h3 class="fw-bold"><i class="fa-solid fa-file-pen"></i> Edytuj Zlecenie</h3>
+            </div>
+            <div class="card-body">
+                <form method="post" class="needs-validation" novalidate>
+                    {% csrf_token %}
+                        {% if form.errors %}
+                            <div class="alert alert-danger">
+                                <ul>
+                                {% for field in form %}
+                                    {% for error in field.errors %}
+                                        <li>{{ error }}</li>
+                                    {% endfor %}
+                                {% endfor %}
+                                </ul>
+                            </div>
+                        {% endif %}
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Miejsce odbioru (format: ulica, miasto)</label>
+                            {{ form.miejsce_odb }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Miejsce dostawy (format: ulica, miasto)</label>
+                            {{ form.miejsce_dost }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Przychód (PLN)</label>
+                            {{ form.przychod }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Ilość ładunku (tony)</label>
+                            {{ form.ilosc_ladunku }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Rodzaj towaru</label>
+                            {{ form.towar }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Data otrzymania</label>
+                            {{ form.data_otrzymania }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Termin realizacji</label>
+                            {{ form.termin_realizacji }}
+                        </div>
+                    </div>
+                    <div class="mt-4 text-center">
+                        <button type="submit" class="btn btn-warning px-4">
+                            <i class="fa-solid fa-save"></i> Zapisz zmiany
+                        </button>
+                        <a href="{% url 'zarzadzaj_zleceniami' %}" class="btn btn-secondary px-4">Anuluj</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

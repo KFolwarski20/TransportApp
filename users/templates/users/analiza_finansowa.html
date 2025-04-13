@@ -1,0 +1,288 @@
+{% extends 'base.html' %}
+{% block title %}Analiza Finansowa{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card shadow-lg">
+                <div class="card-header bg-primary text-white text-center">
+                    <h4 class="fw-bold"><i class="fa-solid fa-chart-line"></i> Podsumowanie Finansowe</h4>
+                </div>
+                <div class="card-body">
+
+                    <!-- 📊 Sekcja Statystyk -->
+                    <div class="row text-center">
+                        <div class="col-md-4">
+                            <div class="card bg-light shadow-sm p-3">
+                                <h5 class="fw-bold">📈 Średni przychód</h5>
+                                <p class="fs-4 fw-bold text-success">{{ srednia_przychod|floatformat:2 }} PLN</p>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card bg-light shadow-sm p-3">
+                                <h5 class="fw-bold">📉 Średni koszt</h5>
+                                <p class="fs-4 fw-bold text-danger">{{ srednia_koszt|floatformat:2 }} PLN</p>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card bg-light shadow-sm p-3">
+                                <h5 class="fw-bold">💰 Średni zysk</h5>
+                                <p class="fs-4 fw-bold text-primary">{{ srednia_zysk|floatformat:2 }} PLN</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row text-center mt-4">
+                        <div class="col-md-4">
+                            <div class="card bg-light shadow-sm p-3">
+                                <h5 class="fw-bold">🔽 Min. przychód</h5>
+                                <p class="fs-4 fw-bold text-success">{{ min_przychod|floatformat:2 }} PLN</p>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card bg-light shadow-sm p-3">
+                                <h5 class="fw-bold">🔽 Min. koszt</h5>
+                                <p class="fs-4 fw-bold text-danger">{{ min_koszt|floatformat:2 }} PLN</p>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card bg-light shadow-sm p-3">
+                                <h5 class="fw-bold">🔽 Min. zysk</h5>
+                                <p class="fs-4 fw-bold text-primary">{{ min_zysk|floatformat:2 }} PLN</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row text-center mt-4">
+                        <div class="col-md-4">
+                            <div class="card bg-light shadow-sm p-3">
+                                <h5 class="fw-bold">🔼 Max. przychód</h5>
+                                <p class="fs-4 fw-bold text-success">{{ max_przychod|floatformat:2 }} PLN</p>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card bg-light shadow-sm p-3">
+                                <h5 class="fw-bold">🔼 Max. koszt</h5>
+                                <p class="fs-4 fw-bold text-danger">{{ max_koszt|floatformat:2 }} PLN</p>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card bg-light shadow-sm p-3">
+                                <h5 class="fw-bold">🔼 Max. zysk</h5>
+                                <p class="fs-4 fw-bold text-primary">{{ max_zysk|floatformat:2 }} PLN</p>
+                            </div>
+                        </div>
+                    </div>
+
+                     <div class="row text-center mt-4">
+                        <div class="col-md-4">
+                            <div class="card bg-light shadow-sm p-3">
+                                <h5 class="fw-bold">📊 Mediana przychód</h5>
+                                <p class="fs-4 fw-bold text-success">{{ mediana_przychod|floatformat:2 }} PLN</p>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card bg-light shadow-sm p-3">
+                                <h5 class="fw-bold">📊 Mediana koszt</h5>
+                                <p class="fs-4 fw-bold text-danger">{{ mediana_koszt|floatformat:2 }} PLN</p>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card bg-light shadow-sm p-3">
+                                <h5 class="fw-bold">📊 Mediana zysk</h5>
+                                <p class="fs-4 fw-bold text-primary">{{ mediana_zysk|floatformat:2 }} PLN</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row text-center mt-4">
+                        <div class="col-md-4">
+                            <div class="card bg-light shadow-sm p-3">
+                                <h5 class="fw-bold">📊 Odch. stand. przychód</h5>
+                                <p class="fs-4 fw-bold text-success">{{ odchylenie_przychod|floatformat:2 }} PLN</p>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card bg-light shadow-sm p-3">
+                                <h5 class="fw-bold">📊 Odch. stand. koszt</h5>
+                                <p class="fs-4 fw-bold text-danger">{{ odchylenie_koszt|floatformat:2 }} PLN</p>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card bg-light shadow-sm p-3">
+                                <h5 class="fw-bold">📊 Odch. stand. zysk</h5>
+                                <p class="fs-4 fw-bold text-primary">{{ odchylenie_zysk|floatformat:2 }} PLN</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 📊 Wykresy -->
+                    <div class="row mt-4">
+                        <div class="col-md-6">
+                            <canvas id="chartSumaPrzychodow"></canvas>
+                        </div>
+                        <div class="col-md-6">
+                            <canvas id="chartSumaKosztow"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="row mt-4">
+                        <div class="col-md-6">
+                            <canvas id="chartZysk"></canvas>
+                        </div>
+                        <div class="col-md-6">
+                            <canvas id="chartLiczbaZlecen"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="row mt-4">
+                        <div class="col-md-6">
+                            <canvas id="chartTerminowosc"></canvas>
+                        </div>
+                        <div class="col-md-6">
+                            <canvas id="chartRodzajeTowarow"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="row mt-4">
+                        <div class="col-md-6">
+                            <div class="card shadow-sm p-3">
+                                <h5 class="fw-bold">🚚 Wskaźnik wykorzystania floty</h5>
+                                <p class="fs-4 text-primary">{{ wykorzystanie_floty }}%</p>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                             <div class="card shadow-sm p-3">
+                                <h5 class="fw-bold">🚚 Wskaźnik wykorzystania kierowców</h5>
+                                <p class="fs-4 text-primary">{{ wykorzystanie_kierowcow }}%</p>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Wczytanie Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0"></script>
+
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    Chart.register(ChartDataLabels);
+    const miesiace = JSON.parse('{{ miesiace_json|escapejs }}');
+    const sumaPrzychodow = JSON.parse('{{ przychody_json|escapejs }}');
+    const sumaKosztow = JSON.parse('{{ koszty_json|escapejs }}');
+    const sumaZyskow = JSON.parse('{{ zysk_json|escapejs }}');
+    const terminowosc = JSON.parse('{{ terminowosc_json|escapejs }}')
+    const liczbaZlecen = JSON.parse('{{ liczba_zlecen_json|escapejs }}');
+    const rodzajeTowarow = JSON.parse('{{ rodzaje_towarow_json|escapejs }}');
+    const rodzajeTowarowLabels = JSON.parse('{{ rodzaje_towarow_labels_json|escapejs }}');
+
+    function createChart(ctx, type, data, options=null) {
+    return new Chart(ctx, { type: type, data: data, options: options });
+}
+
+    createChart(document.getElementById("chartSumaPrzychodow"), "bar", {
+    labels: miesiace,
+    datasets: [{
+        label: "Przychody (PLN)",
+        data: sumaPrzychodow,
+        backgroundColor: "rgba(75, 192, 192, 0.7)",
+        borderWidth: 2
+    }]
+}, {
+    plugins: {
+        datalabels: { display: false }
+    },
+    scales: { y: { beginAtZero: true } }
+});
+
+createChart(document.getElementById("chartSumaKosztow"), "bar", {
+    labels: miesiace,
+    datasets: [{
+        label: "Koszty (PLN)",
+        data: sumaKosztow,
+        backgroundColor: "rgba(255, 99, 132, 0.7)",
+        borderWidth: 2
+    }]
+}, {
+    plugins: {
+        datalabels: { display: false }
+    },
+    scales: { y: { beginAtZero: true } }
+});
+
+createChart(document.getElementById("chartZysk"), "line", {
+    labels: miesiace,
+    datasets: [{
+        label: "Zysk (PLN)",
+        data: sumaZyskow,
+        borderColor: "rgba(54, 162, 235, 1)",
+        fill: true,
+        borderWidth: 3
+    }]
+}, {
+    plugins: {
+        datalabels: { display: false }
+    },
+    scales: { y: { beginAtZero: true } }
+});
+
+    createChart(document.getElementById("chartLiczbaZlecen"), "bar", {
+        labels: miesiace,
+        datasets: [{ label: "Liczba zleceń", data: liczbaZlecen, backgroundColor: "rgba(255, 159, 64, 0.7)", borderWidth: 2 }]
+    });
+
+    createChart(document.getElementById("chartTerminowosc"), "pie", {
+    labels: ["na czas", "opóźnione"],
+    datasets: [{
+        data: terminowosc,
+        backgroundColor: ["#3e7536", "#fd4545"]
+    }]
+}, {
+    plugins: {
+        datalabels: {
+            color: '#fff',
+            formatter: (value, ctx) => {
+                const sum = ctx.chart.data.datasets[0].data.reduce((a, b) => a + b, 0);
+                const percentage = (value / sum * 100).toFixed(1) + "%";
+                return percentage;
+            }
+        },
+        legend: { position: 'bottom' }
+    }
+});
+
+    createChart(document.getElementById("chartRodzajeTowarow"), "pie", {
+    labels: rodzajeTowarowLabels,
+    datasets: [{
+        data: rodzajeTowarow,
+        backgroundColor: [
+  "#FF6384", "#36A2EB", "#FFCE56", "#4BC0C0", "#9966FF",
+  "#FF9F40", "#8AFFC1", "#C9CBCF", "#F67019", "#A463F2",
+  "#FFD36E", "#6AD3D1", "#FA8EAF", "#A0C95D", "#5A87FF",
+  "#FF7F50", "#B19CD9", "#D4A5A5", "#A2D2FF", "#FFC6FF"
+]
+    }]
+}, {
+    plugins: {
+        datalabels: {
+            color: '#fff',
+            formatter: (value, ctx) => {
+                const sum = ctx.chart.data.datasets[0].data.reduce((a, b) => a + b, 0);
+                const percentage = (value / sum * 100).toFixed(1) + "%";
+                return percentage;
+            }
+        },
+        legend: { position: 'bottom' }
+    }
+});
+});
+</script>
+
+{% endblock %}

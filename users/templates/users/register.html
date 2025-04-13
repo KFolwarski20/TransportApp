@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Rejestracja{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-5">
+        <div class="card p-4">
+            <h3 class="text-center text-success"><i class="fa-solid fa-user-plus"></i> Rejestracja</h3>
+            <form method="post">
+                {% csrf_token %}
+
+                {% if form.errors %}
+                    <div class="alert alert-danger">
+                        <ul>
+                            {% for field in form %}
+                                {% for error in field.errors %}
+                                    <li>{{ error }}</li>
+                                {% endfor %}
+                            {% endfor %}
+                        </ul>
+                    </div>
+                {% endif %}
+
+                <div class="mb-3">
+                    <label class="form-label" for="id_username"><i class="fa-solid fa-user"></i> Nazwa użytkownika</label>
+                    <input type="text" name="username" id="id_username" class="form-control" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label" for="id_email"><i class="fa-solid fa-envelope"></i> Email</label>
+                    <input type="email" name="email" id="id_email" class="form-control" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label" for="id_password1"><i class="fa-solid fa-lock"></i> Hasło</label>
+                    <input type="password" name="password1" id="id_password1" class="form-control" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label" for="id_password2"><i class="fa-solid fa-key"></i> Potwierdź hasło</label>
+                    <input type="password" name="password2" id="id_password2" class="form-control" required>
+                </div>
+
+                <button type="submit" class="btn btn-success w-100"><i class="fa-solid fa-user-check"></i> Zarejestruj się</button>
+            </form>
+
+            <p class="mt-3 text-center">
+                Masz już konto? <a href="{% url 'login' %}" class="text-decoration-none">Zaloguj się</a>
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock %}

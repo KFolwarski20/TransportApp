@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+{% block title %}Historia Zlecenia{% endblock %}
+{% block page_class %}page-bg-light{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8 col-md-10">
+        <div class="card shadow-lg">
+            <div class="card-header bg-primary text-white text-center">
+                <h3 class="fw-bold"><i class="fa-solid fa-clock-rotate-left"></i> Historia Zlecenia</h3>
+            </div>
+            <div class="card-body">
+
+                <!-- Szczegóły realizacji -->
+                <div class="alert alert-info">
+                    <h5 class="fw-bold"><i class="fa-solid fa-info-circle"></i> Szczegóły Realizacji</h5>
+                    <p><strong>Kierowca:</strong> {{ zlecenie.kierowca.kier_imie }} {{ zlecenie.kierowca.kier_nazwisko }}</p>
+                    <p><strong>Ciężarówka:</strong> {{ zlecenie.ciezarowka.ciez_marka }} {{ zlecenie.ciezarowka.ciez_model }}</p>
+                    <p><strong>Miejsce odbioru:</strong> {{ zlecenie.miejsce_odb }}</p>
+                    <p><strong>Miejsce dostawy:</strong> {{ zlecenie.miejsce_dost }}</p>
+                    <p><strong>Ilość ładnunku:</strong> {{ zlecenie.ilosc_ladunku }} t</p>
+                    <p><strong>Rodzaj towaru:</strong> {{ zlecenie.towar }}</p>
+                    <p><strong>Przejechane kilometry:</strong> {{ zlecenie.rzeczywiste_przejechane_km|floatformat:2 }} km</p>
+                    <p><strong>Spalone litry paliwa:</strong> {{ zlecenie.rzeczywiste_spalone_litry|floatformat:2 }} l</p>
+                    <p><strong>Termin realizacji:</strong> {{ zlecenie.termin_realizacji|date:"d.m.Y H:i" }}</p>
+                    <p><strong>Rzeczywista data rozpoczęcia:</strong> {{ zlecenie.rzeczywista_data_rozpoczecia|date:"d.m.Y H:i" }}</p>
+                    <p><strong>Rzeczywista data zakończenia:</strong> {{ zlecenie.rzeczywista_data_zakonczenia|date:"d.m.Y H:i" }}</p>
+                </div>
+
+                <div class="text-center mt-4">
+                    <a href="{% url 'zarzadzaj_zleceniami' %}" class="btn btn-secondary px-4">
+                        <i class="fa-solid fa-arrow-left"></i> Wróć
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

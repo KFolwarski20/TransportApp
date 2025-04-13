@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+{% block title %}Usuń Zlecenie{% endblock %}
+{% block page_class %}page-bg-light{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card shadow-lg">
+            <div class="card-header bg-danger text-white text-center">
+                <h3 class="fw-bold"><i class="fa-solid fa-trash"></i> Usuń Zlecenie</h3>
+            </div>
+            <div class="card-body text-center">
+                <p class="fs-5">Czy na pewno chcesz usunąć to zlecenie?</p>
+                <p class="fw-bold">{{ zlecenie.miejsce_odb }} → {{ zlecenie.miejsce_dost }}</p>
+                <form method="post">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger px-4">
+                        <i class="fa-solid fa-trash"></i> Tak, usuń
+                    </button>
+                    <a href="{% url 'zarzadzaj_zleceniami' %}" class="btn btn-secondary px-4">Anuluj</a>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

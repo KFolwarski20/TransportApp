@@ -1,0 +1,99 @@
+{% extends 'base.html' %}
+{% block title %}Zarządzanie Kierowcami{% endblock %}
+{% block page_class %}page-bg-light{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-12 col-lg-12">
+        <div class="card text-center">
+            <div class="card-header bg-dark text-white">
+                <h3 class="fw-bold">🧑‍✈️ Zarządzanie Kierowcami</h3>
+            </div>
+            <div class="card-body">
+                <a href="{% url 'dodaj_kierowce' %}" class="btn btn-success mb-3">
+                    <i class="fa-solid fa-plus"></i> Dodaj Kierowcę
+                </a>
+
+                <!-- Dodajemy kontener do przewijania tabeli -->
+                <div class="table-responsive">
+                    <table id="kierowcyTable" class="table table-bordered table-hover align-middle">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>Imię</th>
+                                <th>Nazwisko</th>
+                                <th>Wiek</th>
+                                <th>Przejechane km</th>
+                                <th>Doświadczenie (lata)</th>
+                                <th>Stawka za km (PLN)</th>
+                                <th>Opcje</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for kierowca in kierowcy %}
+                            <tr>
+                                <td>{{ kierowca.kier_imie }}</td>
+                                <td>{{ kierowca.kier_nazwisko }}</td>
+                                <td>{{ kierowca.oblicz_wiek }}</td>
+                                <td>{{ kierowca.kier_przejech_km }}</td>
+                                <td>{{ kierowca.kier_lata_dosw }}</td>
+                                <td>{{ kierowca.stawka_za_km|floatformat:2 }} PLN/km</td>
+                                <td>
+                                    <div class="d-flex justify-content-center gap-2">
+                                        <a href="{% url 'szczegoly_kierowcy' kierowca.kier_id %}" class="btn btn-info btn-sm flex-fill">
+                                            <i class="fa-solid fa-id-card"></i> Szczegóły
+                                        </a>
+                                        <a href="{% url 'czas_kierowcy_redirect' kierowca.kier_id %}" class="btn btn-primary btn-sm flex-fill">
+                                            <i class="fa-solid fa-business-time"></i> Czas
+                                        </a>
+                                        <a href="{% url 'edytuj_kierowce' kierowca.kier_id %}" class="btn btn-warning btn-sm flex-fill">
+                                            <i class="fa-solid fa-edit"></i> Edytuj
+                                        </a>
+                                        <a href="{% url 'usun_kierowce' kierowca.kier_id %}" class="btn btn-danger btn-sm flex-fill">
+                                            <i class="fa-solid fa-trash"></i> Usuń
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div> <!-- Koniec table-responsive -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- DataTables -->
+<link rel="stylesheet" href="https://cdn.datatables.net/1.11.5/css/jquery.dataTables.min.css">
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
+<script>
+    $(document).ready(function () {
+        $('#kierowcyTable').DataTable({
+            "order": [[5, "desc"]], // Domyślne sortowanie po doświadczeniu
+            "language": {
+                "search": "Szukaj:",
+                "lengthMenu": "Pokaż _MENU_ kierowców",
+                "info": "Wyświetlono _START_ do _END_ z _TOTAL_ kierowców",
+                "emptyTable": "Brak danych w tabeli",
+                "zeroRecords": "Nie znaleziono pasujących kierowców",
+                "infoEmpty": "Wyświetlono 0 do 0 z 0 kierowców",
+                "infoFiltered": "(filtrowane z _MAX_ wszystkich kierowców)",
+                "paginate": {
+                    "first": "Pierwsza",
+                    "last": "Ostatnia",
+                    "next": "Następna",
+                    "previous": "Poprzednia"
+                }
+            }
+        });
+    });
+</script>
+
+<style>
+    /* Równa szerokość przycisków */
+    .btn-sm {
+        min-width: 105px; /* Wszystkie przyciski w "Opcjach" mają taką samą szerokość */
+    }
+</style>
+{% endblock %}
