@@ -13,6 +13,6 @@ def redirect_to_login(request):
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('users/', include('users.urls')),
-    path('', redirect_to_login, name='home'),  # Zmiana domyślnej strony na logowanie
+    path('', redirect_to_login, name='users/login.html'),  # Zmiana domyślnej strony na logowanie
     path("api/get_available_kierowcy_ciezarowki/<int:id_zlec>/", get_available_kierowcy_ciezarowki, name="get_available_kierowcy_ciezarowki"),
 ]
