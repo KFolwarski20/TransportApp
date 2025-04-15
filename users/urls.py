@@ -1,14 +1,15 @@
 from django.urls import path
 from datetime import date
 from django.shortcuts import redirect
-from .views import (
-    menu_glowne_view, zarzadzaj_kierowcami, zarzadzaj_ciezarowkami,
-    zarzadzaj_zleceniami, analiza_finansowa, register_view, login_view, logout_view,
-    dodaj_kierowce, edytuj_kierowce, usun_kierowce, szczegoly_kierowcy, czas_kierowcy,
-    dodaj_ciezarowke, szczegoly_ciezarowki, historia_serwisow, czas_ciezarowki, edytuj_ciezarowke, usun_ciezarowke,
-    dodaj_zlecenie, edytuj_zlecenie, usun_zlecenie, przypisz_kierowce_ciezarowke,
-    szczegoly_zlecenia, cofnij_status_zlecenia, zamknij_zlecenie, historia_zlecenia,
-)
+from users.views.auth_views import register_view, login_view, logout_view
+from users.views.dashboard_views import menu_glowne_view, analiza_finansowa
+from users.views.kierowca_views import (zarzadzaj_kierowcami, dodaj_kierowce, edytuj_kierowce, usun_kierowce,
+                                        szczegoly_kierowcy, czas_kierowcy)
+from users.views.ciezarowka_views import (zarzadzaj_ciezarowkami, dodaj_ciezarowke, edytuj_ciezarowke, usun_ciezarowke,
+                                          szczegoly_ciezarowki, historia_serwisow, czas_ciezarowki)
+from users.views.zlecenie_views import (dodaj_zlecenie, zamknij_zlecenie, zarzadzaj_zleceniami, edytuj_zlecenie,
+                                        przypisz_kierowce_ciezarowke, usun_zlecenie, szczegoly_zlecenia,
+                                        cofnij_status_zlecenia, historia_zlecenia)
 
 urlpatterns = [
     path("register/", register_view, name="register"),
@@ -21,13 +22,21 @@ urlpatterns = [
     path("kierowcy/usun/<int:kier_id>/", usun_kierowce, name="usun_kierowce"),
     path("kierowcy/szczegoly/<int:kier_id>/", szczegoly_kierowcy, name="szczegoly_kierowcy"),
     path("kierowcy/czas_kierowcy/<int:kier_id>/<int:rok>/", czas_kierowcy, name="czas_kierowcy"),
-    path("kierowcy/czas_kierowcy/<int:kier_id>/", lambda request, kier_id: redirect('czas_kierowcy', kier_id=kier_id, rok=date.today().year), name="czas_kierowcy_redirect"),
+    path("kierowcy/czas_kierowcy/<int:kier_id>/", lambda request, kier_id: redirect('czas_kierowcy',
+                                                                                    kier_id=kier_id,
+                                                                                    rok=date.today().year),
+                                                                                    name="czas_kierowcy_redirect"
+         ),
     path("ciezarowki/", zarzadzaj_ciezarowkami, name="zarzadzaj_ciezarowkami"),
     path("ciezarowki/dodaj/", dodaj_ciezarowke, name="dodaj_ciezarowke"),
     path("ciezarowki/szczegoly/<int:ciez_id>/", szczegoly_ciezarowki, name="szczegoly_ciezarowki"),
     path("ciezarowki/historia_serwisow/<int:ciez_id>/", historia_serwisow, name="historia_serwisow"),
     path("ciezarowki/czas_ciezarowki/<int:ciez_id>/<int:rok>/", czas_ciezarowki, name="czas_ciezarowki"),
-    path("ciezarowki/czas_ciezarowki/<int:ciez_id>/", lambda request, ciez_id: redirect('czas_ciezarowki', ciez_id=ciez_id, rok=date.today().year), name="czas_ciezarowki_redirect"),
+    path("ciezarowki/czas_ciezarowki/<int:ciez_id>/", lambda request, ciez_id: redirect('czas_ciezarowki',
+                                                                                        ciez_id=ciez_id,
+                                                                                        rok=date.today().year),
+                                                                                        name="czas_ciezarowki_redirect"
+         ),
     path("ciezarowki/edytuj/<int:ciez_id>/", edytuj_ciezarowke, name="edytuj_ciezarowke"),
     path("ciezarowki/usun/<int:ciez_id>/", usun_ciezarowke, name="usun_ciezarowke"),
     path("zlecenia/", zarzadzaj_zleceniami, name="zarzadzaj_zleceniami"),

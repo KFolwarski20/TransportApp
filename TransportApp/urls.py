@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.urls import path, include
 from django.shortcuts import redirect
-from users.views import get_available_kierowcy_ciezarowki
+from users.views.zlecenie_views import get_available_kierowcy_ciezarowki
 
 # Automatyczne przekierowanie na logowanie
 
