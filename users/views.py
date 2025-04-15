@@ -104,17 +104,17 @@ def menu_glowne_view(request):
 @login_required
 def zarzadzaj_kierowcami(request):
     kierowcy = Kierowca.objects.all()
-    return render(request, "users/zarzadzaj_kierowcami.html", {"kierowcy": kierowcy})
+    return render(request, "users/zarzadzanie/zarzadzaj_kierowcami.html", {"kierowcy": kierowcy})
 
 
 @login_required
 def zarzadzaj_ciezarowkami(request):
-    return render(request, "users/zarzadzaj_ciezarowkami.html")
+    return render(request, "users/zarzadzanie/zarzadzaj_ciezarowkami.html")
 
 
 @login_required
 def zarzadzaj_zleceniami(request):
-    return render(request, "users/zarzadzaj_zleceniami.html")
+    return render(request, "users/zarzadzanie/zarzadzaj_zleceniami.html")
 
 
 @login_required
@@ -131,7 +131,7 @@ def dodaj_kierowce(request):
             return redirect("zarzadzaj_kierowcami")
     else:
         form = KierowcaForm()
-    return render(request, "users/dodaj_kierowce.html", {"form": form})
+    return render(request, "users/kierowcy/dodaj_kierowce.html", {"form": form})
 
 
 @login_required
@@ -144,7 +144,7 @@ def edytuj_kierowce(request, kier_id):
             return redirect("zarzadzaj_kierowcami")
     else:
         form = KierowcaForm(instance=kierowca)
-    return render(request, "users/edytuj_kierowce.html", {"form": form, "kierowca": kierowca})
+    return render(request, "users/kierowcy/edytuj_kierowce.html", {"form": form, "kierowca": kierowca})
 
 
 @login_required
@@ -153,13 +153,13 @@ def usun_kierowce(request, kier_id):
     if request.method == "POST":
         kierowca.delete()
         return redirect("zarzadzaj_kierowcami")
-    return render(request, "users/usun_kierowce.html", {"kierowca": kierowca})
+    return render(request, "users/kierowcy/usun_kierowce.html", {"kierowca": kierowca})
 
 
 @login_required
 def szczegoly_kierowcy(request, kier_id):
     kierowca = get_object_or_404(Kierowca, pk=kier_id)
-    return render(request, "users/szczegoly_kierowcy.html", {"kierowca": kierowca})
+    return render(request, "users/kierowcy/szczegoly_kierowcy.html", {"kierowca": kierowca})
 
 
 @login_required
@@ -197,13 +197,13 @@ def czas_kierowcy(request, kier_id, rok=2025):
         "godziny_labels": json.dumps([round(godziny_miesiac[m], 2) for m in miesiace]),
         "historia": historia
     }
-    return render(request, "users/czas_kierowcy.html", context)
+    return render(request, "users/kierowcy/czas_kierowcy.html", context)
 
 
 @login_required
 def zarzadzaj_ciezarowkami(request):
     ciezarowki = Ciezarowka.objects.all()
-    return render(request, "users/zarzadzaj_ciezarowkami.html", {"ciezarowki": ciezarowki})
+    return render(request, "users/zarzadzanie/zarzadzaj_ciezarowkami.html", {"ciezarowki": ciezarowki})
 
 
 @login_required
@@ -215,13 +215,13 @@ def dodaj_ciezarowke(request):
             return redirect('zarzadzaj_ciezarowkami')
     else:
         form = CiezarowkaForm()
-    return render(request, "users/dodaj_ciezarowke.html", {"form": form})
+    return render(request, "users/ciezarowki/dodaj_ciezarowke.html", {"form": form})
 
 
 @login_required
 def szczegoly_ciezarowki(request, ciez_id):
     ciezarowka = get_object_or_404(Ciezarowka, ciez_id=ciez_id)
-    return render(request, "users/szczegoly_ciezarowki.html", {"ciezarowka": ciezarowka})
+    return render(request, "users/ciezarowki/szczegoly_ciezarowki.html", {"ciezarowka": ciezarowka})
 
 
 @login_required
@@ -241,7 +241,7 @@ def historia_serwisow(request, ciez_id):
         else:
             messages.error(request, "Formularz zawiera błędy. Popraw je i spróbuj ponownie.")
 
-    return render(request, 'users/historia_serwisow.html', {
+    return render(request, 'users/ciezarowki/historia_serwisow.html', {
         'ciezarowka': ciezarowka,
         'serwisy': serwisy,
         'form': form
@@ -283,7 +283,7 @@ def czas_ciezarowki(request, ciez_id, rok=2025):
         "godziny_labels": json.dumps([round(godziny_miesiac[m], 2) for m in miesiace]),
         "historia": historia
     }
-    return render(request, "users/czas_ciezarowki.html", context)
+    return render(request, "users/ciezarowki/czas_ciezarowki.html", context)
 
 
 @login_required
@@ -296,7 +296,7 @@ def edytuj_ciezarowke(request, ciez_id):
             return redirect('zarzadzaj_ciezarowkami')
     else:
         form = CiezarowkaForm(instance=ciezarowka)
-    return render(request, "users/edytuj_ciezarowke.html", {"form": form})
+    return render(request, "users/ciezarowki/edytuj_ciezarowke.html", {"form": form})
 
 
 @login_required
@@ -305,7 +305,7 @@ def usun_ciezarowke(request, ciez_id):
     if request.method == "POST":
         ciezarowka.delete()
         return redirect('zarzadzaj_ciezarowkami')
-    return render(request, "users/usun_ciezarowke.html", {"ciezarowka": ciezarowka})
+    return render(request, "users/ciezarowki/usun_ciezarowke.html", {"ciezarowka": ciezarowka})
 
 
 @login_required
@@ -319,7 +319,7 @@ def zarzadzaj_zleceniami(request):
         'zlecenia_w_realizacji': zlecenia_w_realizacji,
         'zlecenia_zamkniete': zlecenia_zamkniete,
     }
-    return render(request, 'users/zarzadzaj_zleceniami.html', context)
+    return render(request, 'users/zarzadzanie/zarzadzaj_zleceniami.html', context)
 
 
 @login_required
@@ -334,7 +334,7 @@ def dodaj_zlecenie(request):
     else:
         form = ZlecenieForm()
 
-    return render(request, "users/dodaj_zlecenie.html", {"form": form})
+    return render(request, "users/zlecenia/dodaj_zlecenie.html", {"form": form})
 
 
 @login_required
@@ -347,7 +347,7 @@ def edytuj_zlecenie(request, id_zlec):
             return redirect("zarzadzaj_zleceniami")
     else:
         form = ZlecenieForm(instance=zlecenie)
-    return render(request, "users/edytuj_zlecenie.html", {"form": form, "zlecenie": zlecenie})
+    return render(request, "users/zlecenia/edytuj_zlecenie.html", {"form": form, "zlecenie": zlecenie})
 
 
 @login_required
@@ -356,7 +356,7 @@ def usun_zlecenie(request, id_zlec):
     if request.method == "POST":
         zlecenie.delete()
         return redirect("zarzadzaj_zleceniami")
-    return render(request, "users/usun_zlecenie.html", {"zlecenie": zlecenie})
+    return render(request, "users/zlecenia/usun_zlecenie.html", {"zlecenie": zlecenie})
 
 
 @login_required
@@ -421,7 +421,7 @@ def przypisz_kierowce_ciezarowke(request, id_zlec):
         "error_message": error_message,
         "czas_trasy_sek": czas_trasy_sek,
     }
-    return render(request, "users/przypisz_kierowce_ciezarowke.html", context)
+    return render(request, "users/zlecenia/przypisz_kierowce_ciezarowke.html", context)
 
 
 def wyslij_sms_do_kierowcy(kierowca, zlecenie):
@@ -579,7 +579,7 @@ def szczegoly_zlecenia(request, id_zlec):
         "przewidywany_zysk": przewidywany_zysk,
         'error_message': error_message,
     }
-    return render(request, 'users/szczegoly_zlecenia.html', context)
+    return render(request, 'users/zlecenia/szczegoly_zlecenia.html', context)
 
 
 @login_required
@@ -593,7 +593,7 @@ def cofnij_status_zlecenia(request, id_zlec):
         zlecenie.save()
         return redirect('zarzadzaj_zleceniami')
 
-    return render(request, 'users/potwierdz_cofniecie_statusu.html', {'zlecenie': zlecenie})
+    return render(request, 'users/zlecenia/potwierdz_cofniecie_statusu.html', {'zlecenie': zlecenie})
 
 
 @login_required
@@ -648,7 +648,7 @@ def zamknij_zlecenie(request, id_zlec):
         "spalanie_ciezarowki_na_100km": spalanie_ciezarowki_na_100km,
         "cena_paliwa": cena_paliwa,
     }
-    return render(request, "users/zamknij_zlecenie.html", context)
+    return render(request, "users/zlecenia/zamknij_zlecenie.html", context)
 
 
 @login_required
@@ -658,7 +658,7 @@ def historia_zlecenia(request, id_zlec):
     context = {
         "zlecenie": zlecenie,
     }
-    return render(request, "users/historia_zlecenia.html", context)
+    return render(request, "users/zlecenia/historia_zlecenia.html", context)
 
 
 @login_required
