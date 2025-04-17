@@ -89,6 +89,27 @@ class Ciezarowka(models.Model):
         validators=[MinValueValidator(0, message="Spalanie nie może być mniejsze niż 0.")]
     )
 
+    ciez_paliwo_litry = models.FloatField(
+        verbose_name="Stan paliwa (l)",
+        validators=[MinValueValidator(0)],
+        null=True,
+        blank=True
+    )
+
+    ciez_bak_max = models.FloatField(
+        verbose_name="Pojemność baku (l)",
+        validators=[MinValueValidator(1)],
+        null=True,
+        blank=True
+    )
+
+    @property
+    def paliwo_procent(self):
+        """Oblicza poziom paliwa jako procent"""
+        if self.ciez_paliwo_litry is not None and self.ciez_bak_max:
+            return round((self.ciez_paliwo_litry / self.ciez_bak_max) * 100, 1)
+        return None
+
     def clean(self):
         # Sprawdzenie, czy data zakupu została wypełniona
         if self.ciez_data_zakupu:
@@ -165,3 +186,20 @@ class Serwis(models.Model):
     data = models.DateField()
     opis = models.TextField()
     koszt = models.DecimalField(max_digits=10, decimal_places=2)
+
+
+class Tankowanie(models.Model):
+    ciezarowka = models.ForeignKey(Ciezarowka, on_delete=models.CASCADE)
+    data = models.DateField()
+    ilosc_litrow = models.PositiveIntegerField(validators=[MinValueValidator(1)])
+    cena_za_litr = models.DecimalField(max_digits=5, decimal_places=2)
+    koszt = models.DecimalField(max_digits=10, decimal_places=2, editable=False)
+    kierowca = models.ForeignKey(Kierowca, on_delete=models.SET_NULL, null=True, blank=True)
+    komentarz = models.TextField(blank=True)
+
+    def save(self, *args, **kwargs):
+        self.koszt = self.ilosc_litrow * self.cena_za_litr
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"{self.ciezarowka} - {self.data} - {self.ilosc_litrow}l"

@@ -37,6 +37,15 @@
                             <div><strong>Dopuszczalna masa całkowita:</strong> {{ ciezarowka.ciez_dop_masa_calk }} t</div>
                         </div>
 
+                        <h5 class="fw-bold border-bottom pb-2 mt-4 mb-3">🛢️ Poziom paliwa</h5>
+                            <div class="d-flex align-items-center gap-4">
+                                <i class="fa-solid fa-gas-pump fa-2x text-muted"></i>
+                                <div class="tank-container">
+                                    <div class="tank-fill" id="fuelFill"></div>
+                                    <div class="tank-label" id="fuelLabel">{{ ciezarowka.paliwo_procent }}%</div>
+                                </div>
+                            </div>
+
                         <div class="mt-5 text-center">
                             <a href="{% url 'zarzadzaj_ciezarowkami' %}" class="btn btn-secondary px-4">
                                 <i class="fa-solid fa-arrow-left me-1"></i> Powrót
@@ -55,5 +64,50 @@
         padding: 0.4em 0.75em;
         border-radius: 1rem;
     }
+    .tank-container {
+    position: relative;
+    width: 60px;
+    height: 120px;
+    background-color: #f0f0f0;
+    border: 2px solid #ccc;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: inset 0 0 5px rgba(0,0,0,0.1);
+    }
+
+    .tank-fill {
+        position: absolute;
+        bottom: 0;
+        width: 100%;
+        transition: height 1.2s ease;
+        border-radius: 0 0 8px 8px;
+    }
+
+    .tank-label {
+        position: absolute;
+        top: 8px;
+        width: 100%;
+        text-align: center;
+        font-size: 0.9rem;
+        font-weight: 600;
+        color: #333;
+    }
 </style>
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const procent = parseInt("{{ ciezarowka.paliwo_procent }}") || 0;
+    const fill = document.getElementById("fuelFill");
+
+    fill.style.height = procent + "%";
+
+    // Ustal kolor w zależności od poziomu paliwa
+    if (procent >= 60) {
+        fill.style.background = "linear-gradient(to top, #28a745, #81c784)";
+    } else if (procent >= 30) {
+        fill.style.background = "linear-gradient(to top, #ffc107, #fff176)";
+    } else {
+        fill.style.background = "linear-gradient(to top, #dc3545, #f28b82)";
+    }
+});
+</script>
 {% endblock %}

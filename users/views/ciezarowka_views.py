@@ -1,10 +1,11 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
-from users.models import Ciezarowka, Zlecenie, Serwis
-from users.forms import CiezarowkaForm, SerwisForm
+from users.models import Ciezarowka, Zlecenie, Serwis, Tankowanie
+from users.forms import CiezarowkaForm, SerwisForm, TankowanieForm
 from django.contrib import messages
 from datetime import datetime
 import json
+import math
 
 
 @login_required
@@ -53,6 +54,47 @@ def historia_serwisow(request, ciez_id):
         'serwisy': serwisy,
         'form': form
     })
+
+
+@login_required
+def historia_tankowania(request, ciez_id):
+    ciezarowka = get_object_or_404(Ciezarowka, pk=ciez_id)
+    tankowania = Tankowanie.objects.filter(ciezarowka=ciezarowka).order_by('-data')
+
+    # Ile jeszcze można zatankować
+    max_do_zatankowania = max(0, math.floor(ciezarowka.ciez_bak_max - ciezarowka.ciez_paliwo_litry))
+
+    if request.method == 'POST':
+        form = TankowanieForm(request.POST)
+        if form.is_valid():
+            ilosc = form.cleaned_data['ilosc_litrow']
+
+            if ilosc > max_do_zatankowania:
+                messages.error(request, f"Nie można zatankować więcej niż {max_do_zatankowania} litrów!")
+            else:
+                tankowanie = form.save(commit=False)
+                tankowanie.ciezarowka = ciezarowka
+                tankowanie.koszt = round(ilosc * form.cleaned_data['cena_za_litr'], 2)
+                tankowanie.save()
+
+                # Aktualizacja paliwa w baku
+                ciezarowka.ciez_paliwo_litry += ilosc
+                ciezarowka.save()
+
+                messages.success(request, f"Zatankowano {ilosc} litrów. Koszt: {tankowanie.koszt} zł.")
+                return redirect('historia_tankowania', ciez_id=ciez_id)
+        else:
+            messages.error(request, "Formularz zawiera błędy.")
+    else:
+        form = TankowanieForm(initial={'cena_za_litr': 6.26})
+
+    context = {
+        "ciezarowka": ciezarowka,
+        "tankowania": tankowania,
+        "form": form,
+        "max_do_zatankowania": max_do_zatankowania,
+    }
+    return render(request, "users/ciezarowki/historia_tankowania.html", context)
 
 
 @login_required

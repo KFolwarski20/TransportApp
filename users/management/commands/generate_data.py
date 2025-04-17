@@ -47,6 +47,8 @@ class Command(BaseCommand):
                 ciez_masa_ladunku=round(random.uniform(5.0, 25.0), 2),
                 ciez_dop_masa_calk=round(random.uniform(15.0, 40.0), 2),
                 ciez_spalanie_na_100km=round(random.uniform(20.0, 40.0), 2),
+                ciez_paliwo_litry=round(random.uniform(5.0, 400.0), 2),
+                ciez_bak_max=round(random.uniform(400.0, 500.0), 2),
             )
 
         self.stdout.write(self.style.SUCCESS("✅ Wygenerowano 100 kierowców i 100 ciężarówek"))

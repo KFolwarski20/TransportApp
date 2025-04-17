@@ -47,6 +47,9 @@
                                     <a href="{% url 'czas_ciezarowki_redirect' ciezarowka.ciez_id %}" class="btn btn-primary btn-sm flex-fill">
                                         <i class="fa-solid fa-business-time"></i> Czas
                                     </a>
+                                    <a href="{% url 'historia_tankowania' ciezarowka.ciez_id %}" class="btn btn-dark btn-sm flex-fill">
+                                        <i class="fa-solid fa-gas-pump me-1"></i> Tankowanie
+                                    </a>
                                       <a href="{% url 'edytuj_ciezarowke' ciezarowka.ciez_id %}" class="btn btn-warning btn-sm flex-fill">
                                       <i class="fa-solid fa-edit"></i> Edytuj
                                     </a>

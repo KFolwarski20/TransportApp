@@ -3,7 +3,7 @@ from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
-from .models import Kierowca, Ciezarowka, Zlecenie, Serwis
+from .models import Kierowca, Ciezarowka, Zlecenie, Serwis, Tankowanie
 import re
 from datetime import date
 from django.utils import timezone
@@ -213,3 +213,16 @@ class SerwisForm(forms.ModelForm):
         if koszt is not None and koszt < 0:
             raise forms.ValidationError("Koszt serwisu nie może być ujemny.")
         return koszt
+
+
+class TankowanieForm(forms.ModelForm):
+    class Meta:
+        model = Tankowanie
+        fields = ['data', 'ilosc_litrow', 'cena_za_litr', 'kierowca', 'komentarz']
+
+        widgets = {
+            'data': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+            'cena_za_litr': forms.NumberInput(attrs={'step': '0.01', 'class': 'form-control'}),
+            'kierowca': forms.Select(attrs={'class': 'form-select'}),
+            'komentarz': forms.Textarea(attrs={'rows': 3, 'class': 'form-control'}),
+        }

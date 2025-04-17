@@ -1,0 +1,141 @@
+{% extends 'base.html' %}
+{% block title %}Historia Tankowań{% endblock %}
+{% load static %}
+
+{% block content %}
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css" />
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+
+<div class="container mt-5">
+    <div class="card shadow-lg border-0">
+        <div class="card-header bg-dark text-white text-center py-3">
+            <h4 class="fw-bold mb-0">
+                <i class="fa-solid fa-gas-pump me-2"></i> Historia tankowań – {{ ciezarowka.ciez_marka }} {{ ciezarowka.ciez_model }}
+            </h4>
+        </div>
+
+        <div class="card-body px-4 py-4">
+            <!-- ⛽ Formularz tankowania -->
+            <form method="post">
+                {% csrf_token %}
+
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Zamknij"></button>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+
+                <div class="row g-4">
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">📅 Data tankowania</label>
+                        {{ form.data }}
+                        {% if form.data.errors %}
+                            <div class="text-danger small mt-1">{{ form.data.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">👨‍✈️ Kierowca tankujący</label>
+                        {{ form.kierowca }}
+                        {% if form.kierowca.errors %}
+                            <div class="text-danger small mt-1">{{ form.kierowca.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">⛽ Ilość litrów: <span id="litryLabel">0</span> L</label>
+                        <input type="range" min="1" max="{{ max_do_zatankowania }}" value="0" name="ilosc_litrow" id="ilosc_litrow" class="form-range">
+                        {% if form.ilosc_litrow.errors %}
+                            <div class="text-danger small mt-1">{{ form.ilosc_litrow.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">💵 Cena za litr (PLN)</label>
+                        {{ form.cena_za_litr }}
+                        {% if form.cena_za_litr.errors %}
+                            <div class="text-danger small mt-1">{{ form.cena_za_litr.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="mt-4">
+                    <label class="form-label fw-semibold">📝 Komentarz (opcjonalnie)</label>
+                    {{ form.komentarz }}
+                    {% if form.komentarz.errors %}
+                        <div class="text-danger small mt-1">{{ form.komentarz.errors.0 }}</div>
+                    {% endif %}
+                </div>
+
+                <div class="text-center mt-4">
+                    <button type="submit" class="btn btn-success px-4 shadow-sm">
+                        <i class="fa-solid fa-plus me-2"></i> Zatankuj
+                    </button>
+                    <a href="{% url 'zarzadzaj_ciezarowkami' %}" class="btn btn-secondary px-4 ms-2">
+                        <i class="fa-solid fa-xmark me-2"></i> Anuluj
+                    </a>
+                </div>
+            </form>
+
+            <!-- Historia -->
+            {% if tankowania %}
+                <hr class="my-5">
+                <h5 class="text-center fw-bold mb-3"><i class="fa-solid fa-book me-2"></i> Historia tankowań</h5>
+                <div class="table-responsive">
+                    <table id="tankowaniaTable" class="table table-hover table-striped table-bordered align-middle">
+                        <thead class="table-light text-center">
+                            <tr>
+                                <th>📅 Data</th>
+                                <th>👨‍✈️ Kierowca</th>
+                                <th>⛽ Ilość (L)</th>
+                                <th>💵 Koszt (PLN)</th>
+                                <th>📝 Komentarz</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for t in tankowania %}
+                            <tr>
+                                <td class="text-center">{{ t.data|date:"Y-m-d" }}</td>
+                                <td>{{ t.kierowca }}</td>
+                                <td class="text-end">{{ t.ilosc_litrow }}</td>
+                                <td class="text-end">{{ t.koszt|floatformat:2 }}</td>
+                                <td>{{ t.komentarz }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <p class="text-center mt-4 text-muted">Brak zapisanych tankowań.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script>
+    $(document).ready(function () {
+        $('#tankowaniaTable').DataTable({
+            language: {
+                url: "https://cdn.datatables.net/plug-ins/1.13.6/i18n/pl.json"
+            },
+            order: [[0, 'desc']],
+            pageLength: 10,
+            responsive: true
+        });
+
+        const slider = document.getElementById("ilosc_litrow");
+        const label = document.getElementById("litryLabel");
+        if (slider && label) {
+            label.textContent = slider.value;
+            slider.addEventListener("input", function () {
+                label.textContent = this.value;
+            });
+        }
+    });
+</script>
+{% endblock %}

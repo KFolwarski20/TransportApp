@@ -6,7 +6,7 @@ from users.views.dashboard_views import menu_glowne_view, analiza_finansowa
 from users.views.kierowca_views import (zarzadzaj_kierowcami, dodaj_kierowce, edytuj_kierowce, usun_kierowce,
                                         szczegoly_kierowcy, czas_kierowcy)
 from users.views.ciezarowka_views import (zarzadzaj_ciezarowkami, dodaj_ciezarowke, edytuj_ciezarowke, usun_ciezarowke,
-                                          szczegoly_ciezarowki, historia_serwisow, czas_ciezarowki)
+                                          szczegoly_ciezarowki, historia_serwisow, historia_tankowania, czas_ciezarowki)
 from users.views.zlecenie_views import (dodaj_zlecenie, zamknij_zlecenie, zarzadzaj_zleceniami, edytuj_zlecenie,
                                         przypisz_kierowce_ciezarowke, usun_zlecenie, szczegoly_zlecenia,
                                         cofnij_status_zlecenia, historia_zlecenia)
@@ -31,6 +31,7 @@ urlpatterns = [
     path("ciezarowki/dodaj/", dodaj_ciezarowke, name="dodaj_ciezarowke"),
     path("ciezarowki/szczegoly/<int:ciez_id>/", szczegoly_ciezarowki, name="szczegoly_ciezarowki"),
     path("ciezarowki/historia_serwisow/<int:ciez_id>/", historia_serwisow, name="historia_serwisow"),
+    path("ciezarowki/<int:ciez_id>/tankowania/", historia_tankowania, name="historia_tankowania"),
     path("ciezarowki/czas_ciezarowki/<int:ciez_id>/<int:rok>/", czas_ciezarowki, name="czas_ciezarowki"),
     path("ciezarowki/czas_ciezarowki/<int:ciez_id>/", lambda request, ciez_id: redirect('czas_ciezarowki',
                                                                                         ciez_id=ciez_id,
