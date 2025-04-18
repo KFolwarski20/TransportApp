@@ -9,11 +9,13 @@ User = get_user_model()
 
 
 def register_view(request):
+    if request.user.is_authenticated:
+        return redirect("menu_glowne")  # 🔁 przekieruj, jeśli już zalogowany
+
     if request.method == "POST":
         form = RegisterForm(request.POST)
         if form.is_valid():
-            user = form.save(commit=False)
-            user.save()
+            user = form.save()
             login(request, user)
             return redirect("menu_glowne")
     else:
@@ -22,6 +24,9 @@ def register_view(request):
 
 
 def login_view(request):
+    if request.user.is_authenticated:
+        return redirect("menu_glowne")  # 🔁 przekieruj, jeśli już zalogowany
+
     if request.method == "POST":
         form = LoginForm(data=request.POST)
         if form.is_valid():

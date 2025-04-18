@@ -1,31 +1,136 @@
 {% extends 'base.html' %}
-
 {% block title %}Menu Główne{% endblock %}
 
 {% block content %}
-<div class="container mt-5">
+<style>
+    .dashboard-card {
+        border: none;
+        border-radius: 1.5rem;
+        background: #f8f9fa;
+        padding: 3rem;
+        box-shadow: 0 0 25px rgba(0, 0, 0, 0.08);
+    }
+
+    .dashboard-header {
+        background: linear-gradient(90deg, #0d1117, #21262d);
+        border-radius: 1.5rem 1.5rem 0 0;
+        padding: 2rem;
+        text-align: center;
+        color: white;
+    }
+
+    .dashboard-header h3 {
+        font-weight: 700;
+        font-size: 1.9rem;
+    }
+
+    .dashboard-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 2rem;
+    }
+
+    .tile {
+        border-radius: 1.5rem;
+        padding: 2rem 1.5rem;
+        text-align: center;
+        transition: all 0.3s ease;
+        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .tile:hover {
+        transform: translateY(-6px);
+        box-shadow: 0 14px 30px rgba(0, 0, 0, 0.15);
+    }
+
+    .tile .icon {
+        width: 80px;
+        height: 80px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 1rem;
+        border-radius: 50%;
+        font-size: 2.5rem;
+        box-shadow: 0 0 0 4px rgba(255,255,255,0.2);
+        background-color: rgba(255, 255, 255, 0.15);
+        backdrop-filter: blur(2px);
+    }
+
+    .tile h5 {
+        font-weight: 600;
+        font-size: 1.25rem;
+        margin-top: 0.5rem;
+        color: white;
+        text-shadow: 0 1px 3px rgba(0,0,0,0.5);
+    }
+
+    .bg-tile-kierowcy {
+        background: linear-gradient(135deg, #007bff, #004085);
+    }
+
+    .bg-tile-ciezarowki {
+        background: linear-gradient(135deg, #6c757d, #343a40);
+    }
+
+    .bg-tile-zlecenia {
+        background: linear-gradient(135deg, #ff6f00, #e65100);
+    }
+
+    .bg-tile-analiza {
+        background: linear-gradient(135deg, #198754, #0f5132);
+    }
+
+    a.text-decoration-none:hover {
+        text-decoration: none;
+    }
+
+    @media (min-width: 768px) {
+        .dashboard-grid {
+            grid-template-columns: 1fr 1fr;
+        }
+    }
+</style>
+
+<div class="container py-5">
     <div class="row justify-content-center">
-        <div class="col-md-8">
-            <div class="card text-center">
-                <div class="card-header">
-                    <h3>🚛 Witaj, {{ user.username }}!</h3>
+        <div class="col-xl-10 col-lg-11">
+            <div class="dashboard-card">
+                <div class="dashboard-header mb-4">
+                    <h3><i class="fa-solid fa-house-user me-2"></i> Witaj, {{ user.username }}!</h3>
+                    <p class="text-light small mt-2">Wybierz jedną z opcji zarządzania:</p>
                 </div>
-                <div class="card-body">
-                    <p class="lead">Wybierz jedną z opcji zarządzania:</p>
-                    <div class="d-grid gap-3">
-                        <a href="{% url 'zarzadzaj_kierowcami' %}" class="btn btn-primary btn-lg">
-                            <i class="fa-solid fa-user-tie"></i> Zarządzaj kierowcami
-                        </a>
-                        <a href="{% url 'zarzadzaj_ciezarowkami' %}" class="btn btn-secondary btn-lg">
-                            <i class="fa-solid fa-truck"></i> Zarządzaj ciężarówkami
-                        </a>
-                        <a href="{% url 'zarzadzaj_zleceniami' %}" class="btn btn-warning btn-lg">
-                            <i class="fa-solid fa-file-invoice"></i> Zarządzaj zleceniami
-                        </a>
-                        <a href="{% url 'analiza_finansowa' %}" class="btn btn-success btn-lg">
-                            <i class="fa-solid fa-chart-line"></i> Analiza finansowa
-                        </a>
-                    </div>
+
+                <div class="dashboard-grid">
+                    <a href="{% url 'zarzadzaj_kierowcami' %}" class="text-decoration-none">
+                        <div class="tile bg-tile-kierowcy">
+                            <div class="icon text-white"><i class="fa-solid fa-user-tie"></i></div>
+                            <h5>Zarządzaj kierowcami</h5>
+                        </div>
+                    </a>
+
+                    <a href="{% url 'zarzadzaj_ciezarowkami' %}" class="text-decoration-none">
+                        <div class="tile bg-tile-ciezarowki">
+                            <div class="icon text-white"><i class="fa-solid fa-truck"></i></div>
+                            <h5>Zarządzaj ciężarówkami</h5>
+                        </div>
+                    </a>
+
+                    <a href="{% url 'zarzadzaj_zleceniami' %}" class="text-decoration-none">
+                        <div class="tile bg-tile-zlecenia">
+                            <div class="icon text-white"><i class="fa-solid fa-file-invoice"></i></div>
+                            <h5>Zarządzaj zleceniami</h5>
+                        </div>
+                    </a>
+
+                    <a href="{% url 'analiza_finansowa' %}" class="text-decoration-none">
+                        <div class="tile bg-tile-analiza">
+                            <div class="icon text-white"><i class="fa-solid fa-chart-line"></i></div>
+                            <h5>Analiza finansowa</h5>
+                        </div>
+                    </a>
                 </div>
             </div>
         </div>

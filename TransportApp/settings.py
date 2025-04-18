@@ -135,3 +135,5 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 AUTH_USER_MODEL = 'users.CustomUser'
 
 SMSAPI_TOKEN = "PTfgB4nlpiZiTJMScKdBgUh2WPBQb0iQOGECeAAZ"
+
+SESSION_EXPIRE_AT_BROWSER_CLOSE = True
