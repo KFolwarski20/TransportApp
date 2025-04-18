@@ -50,6 +50,20 @@
                         <textarea class="form-control" id="opisDodatkowych" name="opis_dodatkowe" rows="3"></textarea>
                     </div>
 
+                    <div class="form-check mb-4">
+                        <input class="form-check-input" type="checkbox" value="1" id="czyTankowano" disabled {% if tankowanie_istnieje %}checked{% endif %}>
+                        <label class="form-check-label fw-semibold" for="czyTankowano">
+                            <i class="fa-solid fa-gas-pump text-success me-1"></i> Tankowanie wykonane
+                        </label>
+                    </div>
+
+                    {% if not tankowanie_istnieje %}
+                        <div class="alert alert-warning mt-3 text-center">
+                            <i class="fa-solid fa-circle-exclamation me-2"></i>
+                            Aby zamknąć zlecenie, najpierw należy wykonać tankowanie.
+                        </div>
+                    {% endif %}
+
                     <div class="text-center mt-4">
                         <button type="submit" class="btn btn-danger px-4">
                             <i class="fa-solid fa-check"></i> Zamknij zlecenie

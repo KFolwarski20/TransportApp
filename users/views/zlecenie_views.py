@@ -253,6 +253,7 @@ def cofnij_status_zlecenia(request, id_zlec):
 @login_required
 def zamknij_zlecenie(request, id_zlec):
     zlecenie = get_object_or_404(Zlecenie, pk=id_zlec)
+    tankowanie_istnieje = Tankowanie.objects.filter(zlecenie=zlecenie).exists()
 
     if not zlecenie.kierowca or not zlecenie.ciezarowka:
         messages.error(request, "Brak przypisanego kierowcy lub ciężarówki do tego zlecenia!")
@@ -273,6 +274,10 @@ def zamknij_zlecenie(request, id_zlec):
 
         if rzeczywista_data_zakonczenia:
             rzeczywista_data_zakonczenia = timezone.make_aware(parse_datetime(rzeczywista_data_zakonczenia))
+
+        if not tankowanie_istnieje:
+            messages.error(request, "Nie można zamknąć zlecenia bez wykonanego tankowania!")
+            return redirect("zamknij_zlecenie", id_zlec=zlecenie.pk)
 
         # 💡 Pobierz tankowania w okresie trwania zlecenia
         tankowania = Tankowanie.objects.filter(
@@ -305,6 +310,7 @@ def zamknij_zlecenie(request, id_zlec):
     context = {
         "zlecenie": zlecenie,
         "koszt_kierowcy_za_km": koszt_kierowcy_za_km,
+        "tankowanie_istnieje": tankowanie_istnieje,
     }
     return render(request, "users/zlecenia/zamknij_zlecenie.html", context)
 
