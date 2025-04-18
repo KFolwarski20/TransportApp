@@ -195,6 +195,7 @@ class Tankowanie(models.Model):
     cena_za_litr = models.DecimalField(max_digits=5, decimal_places=2)
     koszt = models.DecimalField(max_digits=10, decimal_places=2, editable=False)
     kierowca = models.ForeignKey(Kierowca, on_delete=models.SET_NULL, null=True, blank=True)
+    zlecenie = models.ForeignKey(Zlecenie, on_delete=models.SET_NULL, null=True, blank=True)
     komentarz = models.TextField(blank=True)
 
     def save(self, *args, **kwargs):

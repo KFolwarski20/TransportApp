@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from users.forms import ZlecenieForm
-from users.models import Zlecenie, Kierowca, Ciezarowka
+from users.models import Zlecenie, Kierowca, Ciezarowka, Tankowanie
 from users.views.utils import get_route_geometry, oblicz_odleglosc, wyslij_sms_do_kierowcy
 from django.contrib import messages
 from django.utils.dateparse import parse_datetime
@@ -252,7 +252,6 @@ def cofnij_status_zlecenia(request, id_zlec):
 
 @login_required
 def zamknij_zlecenie(request, id_zlec):
-    """Widok zamykania zlecenia z dynamicznym obliczaniem kosztów."""
     zlecenie = get_object_or_404(Zlecenie, pk=id_zlec)
 
     if not zlecenie.kierowca or not zlecenie.ciezarowka:
@@ -260,14 +259,12 @@ def zamknij_zlecenie(request, id_zlec):
         return redirect("zarzadzaj_zleceniami")
 
     koszt_kierowcy_za_km = zlecenie.kierowca.stawka_za_km
-    spalanie_ciezarowki_na_100km = zlecenie.ciezarowka.ciez_spalanie_na_100km
-    cena_paliwa = 6.26  # Taka sama wartość jak w `przypisz_kierowce_ciezarowke`
 
     if request.method == "POST":
         przejechane_km = float(request.POST.get("przejechane_km", 0))
-        spalone_litry = float(request.POST.get("spalone_litry", 0))
         koszty_dodatkowe = float(request.POST.get("koszty_dodatkowe", 0))
         opis_dodatkowe = request.POST.get("opis_dodatkowe", "").strip()
+
         rzeczywista_data_rozpoczecia = request.POST.get("rzeczywista_data_rozpoczecia", None)
         rzeczywista_data_zakonczenia = request.POST.get("rzeczywista_data_zakonczenia", None)
 
@@ -277,14 +274,22 @@ def zamknij_zlecenie(request, id_zlec):
         if rzeczywista_data_zakonczenia:
             rzeczywista_data_zakonczenia = timezone.make_aware(parse_datetime(rzeczywista_data_zakonczenia))
 
-        # Obliczamy rzeczywiste koszty
-        koszt_kierowcy = float(przejechane_km) * float(koszt_kierowcy_za_km)
-        koszt_paliwa = float(spalone_litry) * float(cena_paliwa)
-        koszt_calkowity = round(koszt_kierowcy + koszt_paliwa + koszty_dodatkowe, 2)
+        # 💡 Pobierz tankowania w okresie trwania zlecenia
+        tankowania = Tankowanie.objects.filter(
+            ciezarowka=zlecenie.ciezarowka,
+            data__range=(rzeczywista_data_rozpoczecia, rzeczywista_data_zakonczenia)
+        )
 
+        # 🔢 Oblicz rzeczywiste zużycie paliwa i koszt
+        spalone_litry = tankowania.aggregate(Sum('ilosc_litrow'))['ilosc_litrow__sum'] or 0
+        koszt_paliwa = sum(t.ilosc_litrow * t.cena_za_litr for t in tankowania)
+
+        # 📊 Koszty całkowite
+        koszt_kierowcy = float(przejechane_km) * float(koszt_kierowcy_za_km)
+        koszt_calkowity = round(koszt_kierowcy + koszt_paliwa + koszty_dodatkowe, 2)
         zysk = float(zlecenie.przychod) - koszt_calkowity
 
-        # 📌 Aktualizacja zlecenia
+        # 📌 Zapisz dane
         zlecenie.status = "zamkniete"
         zlecenie.rzeczywista_data_rozpoczecia = rzeczywista_data_rozpoczecia
         zlecenie.rzeczywista_data_zakonczenia = rzeczywista_data_zakonczenia
@@ -294,13 +299,12 @@ def zamknij_zlecenie(request, id_zlec):
         zlecenie.zysk = zysk
         zlecenie.save()
 
+        messages.success(request, f"Zlecenie zamknięte. Koszt paliwa: {koszt_paliwa:.2f} PLN, Spalone litry: {spalone_litry:.1f}")
         return redirect("zarzadzaj_zleceniami")
 
     context = {
         "zlecenie": zlecenie,
         "koszt_kierowcy_za_km": koszt_kierowcy_za_km,
-        "spalanie_ciezarowki_na_100km": spalanie_ciezarowki_na_100km,
-        "cena_paliwa": cena_paliwa,
     }
     return render(request, "users/zlecenia/zamknij_zlecenie.html", context)
 

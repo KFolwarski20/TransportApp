@@ -48,6 +48,14 @@
                     </div>
 
                     <div class="col-md-6">
+                        <label class="form-label fw-semibold">👨‍✈️ Zlecenie</label>
+                        {{ form.zlecenie }}
+                        {% if form.zlecenie.errors %}
+                            <div class="text-danger small mt-1">{{ form.zlecenie.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="col-md-6">
                         <label class="form-label fw-semibold">⛽ Ilość litrów: <span id="litryLabel">0</span> L</label>
                         <input type="range" min="1" max="{{ max_do_zatankowania }}" value="0" name="ilosc_litrow" id="ilosc_litrow" class="form-range">
                         {% if form.ilosc_litrow.errors %}
@@ -92,6 +100,7 @@
                             <tr>
                                 <th>📅 Data</th>
                                 <th>👨‍✈️ Kierowca</th>
+                                <th>👨‍✈️ Zlecenie</th>
                                 <th>⛽ Ilość (L)</th>
                                 <th>💵 Koszt (PLN)</th>
                                 <th>📝 Komentarz</th>
@@ -102,6 +111,7 @@
                             <tr>
                                 <td class="text-center">{{ t.data|date:"Y-m-d" }}</td>
                                 <td>{{ t.kierowca }}</td>
+                                <td>{{ t.zlecenie.numer_zlecenia }}</td>
                                 <td class="text-end">{{ t.ilosc_litrow }}</td>
                                 <td class="text-end">{{ t.koszt|floatformat:2 }}</td>
                                 <td>{{ t.komentarz }}</td>

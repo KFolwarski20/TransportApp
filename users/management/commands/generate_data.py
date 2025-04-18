@@ -1,7 +1,7 @@
 import random
 from django.core.management.base import BaseCommand
 from faker import Faker
-from users.models import Kierowca, Ciezarowka, Zlecenie
+from users.models import Kierowca, Ciezarowka, Zlecenie, Tankowanie
 from datetime import date, datetime, timedelta, time
 from decimal import Decimal
 from django.utils.timezone import now
@@ -48,7 +48,7 @@ class Command(BaseCommand):
                 ciez_dop_masa_calk=round(random.uniform(15.0, 40.0), 2),
                 ciez_spalanie_na_100km=round(random.uniform(20.0, 40.0), 2),
                 ciez_paliwo_litry=round(random.uniform(5.0, 400.0), 2),
-                ciez_bak_max=round(random.uniform(400.0, 500.0), 2),
+                ciez_bak_max=round(random.uniform(900.0, 1000.0), 2),
             )
 
         self.stdout.write(self.style.SUCCESS("✅ Wygenerowano 100 kierowców i 100 ciężarówek"))
@@ -78,13 +78,16 @@ class Command(BaseCommand):
             stawka_kierowcy = float(kierowca.stawka_za_km)
             spalanie_na_100km = float(ciezarowka.ciez_spalanie_na_100km)
 
-            koszt_kierowcy = stawka_kierowcy * odleglosc_km
-            koszt_paliwa = spalanie_na_100km * (odleglosc_km / 100) * 6.26
+            spalone_litry = round((odleglosc_km / 100) * spalanie_na_100km, 2)
+            cena_za_litr = 6.26
+            koszt_paliwa = round(spalone_litry * cena_za_litr, 2)
+            koszt_kierowcy = round(stawka_kierowcy * odleglosc_km, 2)
             koszt_laczny = round(koszt_kierowcy + koszt_paliwa + random.uniform(100, 300), 2)
             przychod = round(koszt_laczny + random.uniform(500, 2000), 2)
             zysk = round(przychod - koszt_laczny, 2)
 
-            Zlecenie.objects.create(
+            # ✅ Najpierw utwórz zlecenie
+            zlecenie = Zlecenie.objects.create(
                 miejsce_odb=random.choice(miasta),
                 miejsce_dost=random.choice(miasta),
                 przychod=Decimal(str(przychod)),
@@ -99,7 +102,18 @@ class Command(BaseCommand):
                 rzeczywista_data_rozpoczecia=rzeczywista_data_rozpoczecia,
                 rzeczywista_data_zakonczenia=rzeczywista_data_zakonczenia,
                 rzeczywiste_przejechane_km=odleglosc_km + random.uniform(-5, 15),
-                rzeczywiste_spalone_litry=(odleglosc_km / 100) * spalanie_na_100km,
+                rzeczywiste_spalone_litry=spalone_litry,
                 rzeczywisty_koszt=Decimal(str(koszt_laczny)),
                 zysk=Decimal(str(zysk))
+            )
+
+            # ✅ Teraz możesz przypisać to zlecenie do tankowania
+            Tankowanie.objects.create(
+                data=rzeczywista_data_rozpoczecia - timedelta(hours=1),
+                ciezarowka=ciezarowka,
+                kierowca=kierowca,
+                zlecenie=zlecenie,
+                ilosc_litrow=spalone_litry,
+                cena_za_litr=cena_za_litr,
+                komentarz="Tankowanie przed zleceniem"
             )
