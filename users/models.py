@@ -191,7 +191,7 @@ class Serwis(models.Model):
 class Tankowanie(models.Model):
     ciezarowka = models.ForeignKey(Ciezarowka, on_delete=models.CASCADE)
     data = models.DateField()
-    ilosc_litrow = models.PositiveIntegerField(validators=[MinValueValidator(1)])
+    ilosc_litrow = models.DecimalField(max_digits=5, decimal_places=2)
     cena_za_litr = models.DecimalField(max_digits=5, decimal_places=2)
     koszt = models.DecimalField(max_digits=10, decimal_places=2, editable=False)
     kierowca = models.ForeignKey(Kierowca, on_delete=models.SET_NULL, null=True, blank=True)

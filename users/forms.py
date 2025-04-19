@@ -218,12 +218,7 @@ class SerwisForm(forms.ModelForm):
 class TankowanieForm(forms.ModelForm):
     class Meta:
         model = Tankowanie
-        fields = ['data', 'ilosc_litrow', 'cena_za_litr', 'kierowca', 'zlecenie', 'komentarz']
-
+        fields = ['data', 'kierowca', 'zlecenie', 'ilosc_litrow', 'cena_za_litr', 'komentarz']
         widgets = {
-            'data': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
-            'cena_za_litr': forms.NumberInput(attrs={'step': '0.01', 'class': 'form-control'}),
-            'kierowca': forms.Select(attrs={'class': 'form-select'}),
-            'zlecenie': forms.Select(attrs={'class': 'form-select'}),
-            'komentarz': forms.Textarea(attrs={'rows': 3, 'class': 'form-control'}),
+            'zlecenie': forms.Select(attrs={'id': 'id_zlecenie'}),
         }

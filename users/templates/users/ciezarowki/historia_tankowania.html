@@ -31,53 +31,84 @@
                 {% endif %}
 
                 <div class="row g-4">
+
+                    <!-- Data tankowania -->
                     <div class="col-md-6">
-                        <label class="form-label fw-semibold">📅 Data tankowania</label>
-                        {{ form.data }}
+                        <label class="form-label fw-semibold">
+                            <i class="fa-regular fa-calendar me-1"></i> Data tankowania
+                        </label>
+                        <input type="date" name="data" class="form-control" value="{{ form.data.value|default:'' }}">
                         {% if form.data.errors %}
-                            <div class="text-danger small mt-1">{{ form.data.errors.0 }}</div>
+                            <div class="text-danger small">{{ form.data.errors.0 }}</div>
                         {% endif %}
                     </div>
 
+                    <!-- Kierowca -->
                     <div class="col-md-6">
-                        <label class="form-label fw-semibold">👨‍✈️ Kierowca tankujący</label>
-                        {{ form.kierowca }}
+                        <label class="form-label fw-semibold">
+                            <i class="fa-solid fa-user me-1"></i> Kierowca tankujący
+                        </label>
+                        <div class="form-select p-0 border-0">
+                            {{ form.kierowca }}
+                        </div>
                         {% if form.kierowca.errors %}
-                            <div class="text-danger small mt-1">{{ form.kierowca.errors.0 }}</div>
+                            <div class="text-danger small">{{ form.kierowca.errors.0 }}</div>
                         {% endif %}
                     </div>
 
+                    <!-- Zlecenie -->
                     <div class="col-md-6">
-                        <label class="form-label fw-semibold">👨‍✈️ Zlecenie</label>
-                        {{ form.zlecenie }}
+                        <label class="form-label fw-semibold">
+                            <i class="fa-solid fa-clipboard-check me-1"></i> Zlecenie
+                        </label>
+                        <div class="form-select p-0 border-0">
+                            {{ form.zlecenie }}
+                        </div>
                         {% if form.zlecenie.errors %}
-                            <div class="text-danger small mt-1">{{ form.zlecenie.errors.0 }}</div>
+                            <div class="text-danger small">{{ form.zlecenie.errors.0 }}</div>
                         {% endif %}
                     </div>
 
+                    <!-- Cena za litr -->
                     <div class="col-md-6">
-                        <label class="form-label fw-semibold">⛽ Ilość litrów: <span id="litryLabel">0</span> L</label>
-                        <input type="range" min="1" max="{{ max_do_zatankowania }}" value="0" name="ilosc_litrow" id="ilosc_litrow" class="form-range">
-                        {% if form.ilosc_litrow.errors %}
-                            <div class="text-danger small mt-1">{{ form.ilosc_litrow.errors.0 }}</div>
-                        {% endif %}
-                    </div>
-
-                    <div class="col-md-6">
-                        <label class="form-label fw-semibold">💵 Cena za litr (PLN)</label>
-                        {{ form.cena_za_litr }}
+                        <label class="form-label fw-semibold">
+                            <i class="fa-solid fa-coins me-1"></i> Cena za litr (PLN)
+                        </label>
+                        <div class="form-control p-0 border-0">
+                            {{ form.cena_za_litr }}
+                        </div>
                         {% if form.cena_za_litr.errors %}
-                            <div class="text-danger small mt-1">{{ form.cena_za_litr.errors.0 }}</div>
+                            <div class="text-danger small">{{ form.cena_za_litr.errors.0 }}</div>
                         {% endif %}
                     </div>
-                </div>
 
-                <div class="mt-4">
-                    <label class="form-label fw-semibold">📝 Komentarz (opcjonalnie)</label>
-                    {{ form.komentarz }}
-                    {% if form.komentarz.errors %}
-                        <div class="text-danger small mt-1">{{ form.komentarz.errors.0 }}</div>
-                    {% endif %}
+                    <!-- Ilość litrów -->
+                    <div class="col-12">
+                        <label class="form-label fw-semibold">
+                            <i class="fa-solid fa-gas-pump me-1"></i> Ilość litrów: <span id="litryLabel">{{ min_do_zatankowania }}</span> L
+                        </label>
+                        <input type="range"
+                               min="{{ min_do_zatankowania }}"
+                               max="{{ max_do_zatankowania }}"
+                               value="{{ min_do_zatankowania }}"
+                               name="ilosc_litrow"
+                               id="ilosc_litrow"
+                               class="form-range"
+                               step="0.1">
+                        {% if form.ilosc_litrow.errors %}
+                            <div class="text-danger small">{{ form.ilosc_litrow.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="col-12">
+                        <label class="form-label fw-semibold">
+                            <i class="fa-solid fa-pen-to-square me-1"></i> Komentarz (opcjonalnie)
+                        </label>
+                        <textarea name="komentarz" class="form-control" rows="4">{{ form.komentarz.value|default_if_none:'' }}</textarea>
+                        {% if form.komentarz.errors %}
+                            <div class="text-danger small">{{ form.komentarz.errors.0 }}</div>
+                        {% endif %}
+                    </div>
                 </div>
 
                 <div class="text-center mt-4">
@@ -126,7 +157,24 @@
         </div>
     </div>
 </div>
+<style>
+    input[type="range"] {
+        accent-color: #198754;
+    }
 
+    label.form-label i {
+        color: #6c757d;
+    }
+
+    .form-label {
+        font-size: 0.95rem;
+    }
+
+    .form-control input,
+    .form-select select {
+        width: 100%;
+    }
+</style>
 <script>
     $(document).ready(function () {
         $('#tankowaniaTable').DataTable({
@@ -137,15 +185,38 @@
             pageLength: 10,
             responsive: true
         });
-
-        const slider = document.getElementById("ilosc_litrow");
-        const label = document.getElementById("litryLabel");
-        if (slider && label) {
-            label.textContent = slider.value;
-            slider.addEventListener("input", function () {
-                label.textContent = this.value;
-            });
-        }
     });
+</script>
+    <script>
+    const zlecenia = {{ zlecenia_json|safe }};
+    const zlecenieSelect = document.getElementById("id_zlecenie");
+    const slider = document.getElementById("ilosc_litrow");
+    const label = document.getElementById("litryLabel");
+
+    function updateSlider() {
+        const selectedId = zlecenieSelect.value;
+        const zlec = zlecenia.find(z => z.id == selectedId);
+
+        if (zlec) {
+            slider.min = zlec.min;
+            slider.max = zlec.max;
+            slider.value = zlec.min;
+            label.textContent = zlec.min;
+        } else {
+            // Fallback — brak danych
+            slider.min = 0;
+            slider.max = {{ max_do_zatankowania }};
+            slider.value = 0;
+            label.textContent = 0;
+        }
+    }
+
+    if (zlecenieSelect && slider && label) {
+        updateSlider(); // on page load
+        zlecenieSelect.addEventListener("change", updateSlider);
+        slider.addEventListener("input", function () {
+            label.textContent = this.value;
+        });
+    }
 </script>
 {% endblock %}

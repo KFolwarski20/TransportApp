@@ -1,6 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
-from users.models import Ciezarowka, Zlecenie, Serwis, Tankowanie
+from django.core.serializers.json import DjangoJSONEncoder
+from users.models import Ciezarowka, Zlecenie, Serwis, Tankowanie, Kierowca
 from users.forms import CiezarowkaForm, SerwisForm, TankowanieForm
 from django.contrib import messages
 from datetime import datetime
@@ -58,23 +59,30 @@ def historia_serwisow(request, ciez_id):
 
 @login_required
 def historia_tankowania(request, ciez_id):
+
     ciezarowka = get_object_or_404(Ciezarowka, pk=ciez_id)
     tankowania = Tankowanie.objects.filter(ciezarowka=ciezarowka).order_by('-data')
 
-    # Ile jeszcze można zatankować
+    zlecenia_w_realizacji = Zlecenie.objects.filter(ciezarowka=ciezarowka, status="w_realizacji")
+
+    min_do_zatankowania = 0
     max_do_zatankowania = max(0, math.floor(ciezarowka.ciez_bak_max - ciezarowka.ciez_paliwo_litry))
 
     if request.method == 'POST':
         form = TankowanieForm(request.POST)
         if form.is_valid():
             ilosc = form.cleaned_data['ilosc_litrow']
+            cena = form.cleaned_data['cena_za_litr']
+            zlecenie = form.cleaned_data['zlecenie']
 
-            if ilosc > max_do_zatankowania:
+            if zlecenie and zlecenie.ciezarowka != ciezarowka:
+                messages.error(request, "Wybrane zlecenie nie jest przypisane do tej ciężarówki.")
+            elif ilosc > max_do_zatankowania:
                 messages.error(request, f"Nie można zatankować więcej niż {max_do_zatankowania} litrów!")
             else:
                 tankowanie = form.save(commit=False)
                 tankowanie.ciezarowka = ciezarowka
-                tankowanie.koszt = round(ilosc * form.cleaned_data['cena_za_litr'], 2)
+                tankowanie.koszt = round(ilosc * cena, 2)
                 tankowanie.save()
 
                 # Aktualizacja paliwa w baku
@@ -83,16 +91,26 @@ def historia_tankowania(request, ciez_id):
 
                 messages.success(request, f"Zatankowano {ilosc} litrów. Koszt: {tankowanie.koszt} zł.")
                 return redirect('historia_tankowania', ciez_id=ciez_id)
-        else:
-            messages.error(request, "Formularz zawiera błędy.")
     else:
         form = TankowanieForm(initial={'cena_za_litr': 6.26})
+        form.fields['zlecenie'].queryset = zlecenia_w_realizacji
+        form.fields['kierowca'].queryset = Kierowca.objects.all()
+
+    zlecenia_json = json.dumps([
+        {
+            "id": z.pk,
+            "min": round(z.odleglosc_km * (ciezarowka.ciez_spalanie_na_100km / 100), 2),
+            "max": round(ciezarowka.ciez_bak_max - ciezarowka.ciez_paliwo_litry, 2)
+        } for z in zlecenia_w_realizacji
+    ], cls=DjangoJSONEncoder)
 
     context = {
         "ciezarowka": ciezarowka,
         "tankowania": tankowania,
         "form": form,
         "max_do_zatankowania": max_do_zatankowania,
+        "min_do_zatankowania": min_do_zatankowania,
+        "zlecenia_json": zlecenia_json,
     }
     return render(request, "users/ciezarowki/historia_tankowania.html", context)
 
