@@ -2,6 +2,7 @@ from django.contrib import admin
 from django.urls import path, include
 from django.shortcuts import redirect
 from users.views.zlecenie_views import get_available_kierowcy_ciezarowki
+from users.views.utils import get_cena_paliwa
 
 # Automatyczne przekierowanie na logowanie
 
@@ -15,4 +16,5 @@ urlpatterns = [
     path('users/', include('users.urls')),
     path('', redirect_to_login, name='users/login.html'),  # Zmiana domyślnej strony na logowanie
     path("api/get_available_kierowcy_ciezarowki/<int:id_zlec>/", get_available_kierowcy_ciezarowki, name="get_available_kierowcy_ciezarowki"),
+    path("api/cena-paliwa/", get_cena_paliwa, name="get_cena_paliwa"),
 ]

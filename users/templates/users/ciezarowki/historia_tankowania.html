@@ -32,15 +32,12 @@
 
                 <div class="row g-4">
 
-                    <!-- Data tankowania -->
+                    <!-- Data tankowania (tylko do odczytu) -->
                     <div class="col-md-6">
                         <label class="form-label fw-semibold">
                             <i class="fa-regular fa-calendar me-1"></i> Data tankowania
                         </label>
-                        <input type="date" name="data" class="form-control" value="{{ form.data.value|default:'' }}">
-                        {% if form.data.errors %}
-                            <div class="text-danger small">{{ form.data.errors.0 }}</div>
-                        {% endif %}
+                        <input type="date" class="form-control" id="id_data" name="data" value="{{ today_date }}" readonly>
                     </div>
 
                     <!-- Kierowca -->
@@ -71,12 +68,7 @@
                         <label class="form-label fw-semibold">
                             <i class="fa-solid fa-coins me-1"></i> Cena za litr (PLN)
                         </label>
-                        <div class="form-control p-0 border-0">
-                            {{ form.cena_za_litr }}
-                        </div>
-                        {% if form.cena_za_litr.errors %}
-                            <div class="text-danger small">{{ form.cena_za_litr.errors.0 }}</div>
-                        {% endif %}
+                        <input type="text" id="id_cena_za_litr" name="cena_za_litr" class="form-control" readonly>
                     </div>
 
                     <!-- Ilość litrów -->
@@ -235,5 +227,33 @@
             label.textContent = this.value;
         });
     }
+</script>
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const dataInput = document.getElementById("id_data");
+        const cenaInput = document.getElementById("id_cena_za_litr");
+
+        function pobierzCenePaliwa(data) {
+            if (!data) return;
+
+            fetch(`http://127.0.0.1:8000/api/cena-paliwa/?data=${data}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.cena) {
+                        cenaInput.value = data.cena.toFixed(2);
+                    } else {
+                        cenaInput.value = "Brak danych";
+                    }
+                })
+                .catch(err => {
+                    cenaInput.value = "Błąd";
+                    console.error("Błąd pobierania ceny:", err);
+                });
+        }
+
+        if (dataInput && cenaInput) {
+            pobierzCenePaliwa(dataInput.value);
+        }
+    });
 </script>
 {% endblock %}

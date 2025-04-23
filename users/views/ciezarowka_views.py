@@ -3,6 +3,8 @@ from django.contrib.auth.decorators import login_required
 from django.core.serializers.json import DjangoJSONEncoder
 from users.models import Ciezarowka, Zlecenie, Serwis, Tankowanie, Kierowca
 from users.forms import CiezarowkaForm, SerwisForm, TankowanieForm
+from .utils import get_cena_paliwa
+from django.utils import timezone
 from django.contrib import messages
 from datetime import datetime
 import json
@@ -79,6 +81,12 @@ def historia_tankowania(request, ciez_id):
                 messages.error(request, "Wybrane zlecenie nie jest przypisane do tej ciężarówki.")
             elif ilosc > max_do_zatankowania:
                 messages.error(request, f"Nie można zatankować więcej niż {max_do_zatankowania} litrów!")
+            elif not cena and form.cleaned_data['data']:
+                data_str = form.cleaned_data['data'].strftime('YYYY-MM-DD')
+                cena = get_cena_paliwa(data_str)
+                if not cena:
+                    messages.error(request, "Nie udało się pobrać ceny paliwa z API Orlenu.")
+                    return redirect('historia_tankowania', ciez_id=ciez_id)
             else:
                 tankowanie = form.save(commit=False)
                 tankowanie.ciezarowka = ciezarowka
@@ -112,6 +120,7 @@ def historia_tankowania(request, ciez_id):
         "max_do_zatankowania": max_do_zatankowania,
         "min_do_zatankowania": min_do_zatankowania,
         "zlecenia_json": zlecenia_json,
+        "today_date": '2025-04-24',
     }
     return render(request, "users/ciezarowki/historia_tankowania.html", context)
 

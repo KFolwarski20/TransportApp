@@ -2,6 +2,10 @@ import openrouteservice
 from geopy.geocoders import Nominatim
 import requests
 from django.conf import settings
+from django.http import JsonResponse
+from django.views.decorators.http import require_GET
+from datetime import datetime
+
 
 ORS_API_KEY = "5b3ce3597851110001cf62485a5adc7a079347dbb10ae922b01de893"
 
@@ -96,3 +100,30 @@ def generuj_link_do_mapy(start_coords, end_coords):
         f"&a={start_coords[1]},{start_coords[0]},{end_coords[1]},{end_coords[0]}"
         f"&b=0&c=0&k1=pl-PL&k2=km"
     )
+
+
+@require_GET
+def get_cena_paliwa(request):
+    data_str = request.GET.get("data")
+    if not data_str:
+        return JsonResponse({"error": "Brak daty"}, status=400)
+
+    try:
+        # API Orlen
+        response = requests.get("https://tool.orlen.pl/api/wholesalefuelprices")
+        response.raise_for_status()
+        data = response.json()
+
+        # Format daty z formularza (YYYY-MM-DD)
+        target_date = datetime.strptime(data_str, "%Y-%m-%d").date()
+
+        for entry in data:
+            effective_date = datetime.fromisoformat(entry["effectiveDate"]).date()
+            if entry["productName"] == "ONEkodiesel" and effective_date == target_date:
+                cena_litr = round(float(entry["value"]) / 1000, 3)
+                return JsonResponse({"cena": cena_litr})
+
+        return JsonResponse({"error": "Brak danych dla podanej daty"}, status=404)
+
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=500)
