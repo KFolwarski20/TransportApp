@@ -99,6 +99,7 @@ def historia_tankowania(request, ciez_id):
     zlecenia_json = json.dumps([
         {
             "id": z.pk,
+            "kierowca": str(z.kierowca),
             "min": round(z.odleglosc_km * (ciezarowka.ciez_spalanie_na_100km / 100), 2),
             "max": round(ciezarowka.ciez_bak_max - ciezarowka.ciez_paliwo_litry, 2)
         } for z in zlecenia_w_realizacji

@@ -48,12 +48,9 @@
                         <label class="form-label fw-semibold">
                             <i class="fa-solid fa-user me-1"></i> Kierowca tankujący
                         </label>
-                        <div class="form-select p-0 border-0">
-                            {{ form.kierowca }}
-                        </div>
-                        {% if form.kierowca.errors %}
-                            <div class="text-danger small">{{ form.kierowca.errors.0 }}</div>
-                        {% endif %}
+                        <select class="form-select" name="kierowca" id="id_kierowca" disabled>
+                            <option selected>— wybierz zlecenie —</option>
+                        </select>
                     </div>
 
                     <!-- Zlecenie -->
@@ -190,8 +187,28 @@
     <script>
     const zlecenia = {{ zlecenia_json|safe }};
     const zlecenieSelect = document.getElementById("id_zlecenie");
+    const kierowcaSelect = document.getElementById("id_kierowca");
     const slider = document.getElementById("ilosc_litrow");
     const label = document.getElementById("litryLabel");
+
+    function updateKierowca() {
+        const selectedId = zlecenieSelect.value;
+        const zlec = zlecenia.find(z => z.id == selectedId);
+
+        if (zlec && kierowcaSelect) {
+            kierowcaSelect.innerHTML = ''; // wyczyść
+            const opt = document.createElement("option");
+            opt.textContent = zlec.kierowca;
+            opt.value = zlec.kierowca;
+            opt.selected = true;
+            kierowcaSelect.appendChild(opt);
+        }
+    }
+
+    if (zlecenieSelect && kierowcaSelect) {
+        zlecenieSelect.addEventListener("change", updateKierowca);
+        updateKierowca();  // domyślnie na załadowaniu
+    }
 
     function updateSlider() {
         const selectedId = zlecenieSelect.value;
