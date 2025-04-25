@@ -6,6 +6,7 @@ from users.views.utils import get_route_geometry, oblicz_odleglosc, wyslij_sms_d
 from django.contrib import messages
 from django.utils.dateparse import parse_datetime
 from django.utils import timezone
+from .utils import pobierz_cene_paliwa
 from django.http import JsonResponse
 from datetime import timedelta
 from django.db.models import Q, F, Sum, ExpressionWrapper, DurationField
@@ -73,8 +74,7 @@ def przypisz_kierowce_ciezarowke(request, id_zlec):
 
     odleglosc = float(zlecenie.odleglosc_km or 0)
     route_geometry = get_route_geometry(start_coords, end_coords) if start_coords and end_coords else None
-    CENA_PALIWA_ZA_LITR = 6.26
-    laczny_koszt = None
+    CENA_PALIWA_ZA_LITR = pobierz_cene_paliwa()
 
     if request.method == "POST":
         kierowca_id = request.POST.get("kierowca")
@@ -98,7 +98,7 @@ def przypisz_kierowce_ciezarowke(request, id_zlec):
                 koszt_paliwa = float(ciezarowka.ciez_spalanie_na_100km) * (odleglosc / 100) * CENA_PALIWA_ZA_LITR
                 przewidywany_koszt = round(koszt_kierowcy + koszt_paliwa, 2)
 
-                przewidywany_czas = timedelta(seconds=czas_trasy_sek)
+                przewidywany_czas = 1.05 * timedelta(seconds=czas_trasy_sek)
                 przewidywana_data_zakonczenia = data_rozpoczecia_realizacji + przewidywany_czas
 
                 if 'confirm' in request.POST:
@@ -143,7 +143,7 @@ def get_available_kierowcy_ciezarowki(request, id_zlec):
 
     zlecenie = get_object_or_404(Zlecenie, pk=id_zlec)
     odleglosc, _, _, czas_trasy_sek = oblicz_odleglosc(zlecenie.miejsce_odb, zlecenie.miejsce_dost)
-    przewidywany_czas = timedelta(seconds=czas_trasy_sek)
+    przewidywany_czas = 1.05 * timedelta(seconds=czas_trasy_sek)
     data_zakonczenia = data_rozpoczecia + przewidywany_czas
 
     # 🛠️ Pobranie listy zajętych kierowców i ciężarówek
@@ -171,7 +171,7 @@ def get_available_kierowcy_ciezarowki(request, id_zlec):
     rok_realizacji = data_rozpoczecia.year
     godziny_przewidywane = przewidywany_czas.total_seconds() / 3600
     LIMIT_GODZIN = 168
-    CENA_PALIWA_ZA_LITR = 6.26
+    CENA_PALIWA_ZA_LITR = pobierz_cene_paliwa()
 
     # Filtrowanie kierowców którzy nie przekroczą limitu
     dostepni_kierowcy_z_limitem = []

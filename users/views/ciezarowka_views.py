@@ -4,9 +4,8 @@ from django.core.serializers.json import DjangoJSONEncoder
 from users.models import Ciezarowka, Zlecenie, Serwis, Tankowanie, Kierowca
 from users.forms import CiezarowkaForm, SerwisForm, TankowanieForm
 from .utils import get_cena_paliwa
-from django.utils import timezone
 from django.contrib import messages
-from datetime import datetime
+from datetime import datetime, date
 import json
 import math
 
@@ -120,7 +119,7 @@ def historia_tankowania(request, ciez_id):
         "max_do_zatankowania": max_do_zatankowania,
         "min_do_zatankowania": min_do_zatankowania,
         "zlecenia_json": zlecenia_json,
-        "today_date": '2025-04-24',
+        "today_date": date.today().strftime('%Y-%m-%d'),
     }
     return render(request, "users/ciezarowki/historia_tankowania.html", context)
 

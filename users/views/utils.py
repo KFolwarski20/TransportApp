@@ -127,3 +127,30 @@ def get_cena_paliwa(request):
 
     except Exception as e:
         return JsonResponse({"error": str(e)}, status=500)
+
+
+def pobierz_cene_paliwa(data=None):
+    """
+    Pobiera cenę paliwa ON Ekodiesel z API Orlen na podstawie daty.
+    Jeśli data jest None — bierze dzisiejszą.
+    Zwraca cenę za litr (float) albo None jak nie ma danych.
+    """
+    if not data:
+        data = datetime.now().strftime("%Y-%m-%d")
+
+    try:
+        response = requests.get("https://tool.orlen.pl/api/wholesalefuelprices")
+        response.raise_for_status()
+        dane = response.json()
+
+        target_date = datetime.strptime(data, "%Y-%m-%d").date()
+
+        for entry in dane:
+            effective_date = datetime.fromisoformat(entry["effectiveDate"]).date()
+            if entry["productName"] == "ONEkodiesel" and effective_date == target_date:
+                cena_litr = round(float(entry["value"]) / 1000, 3)
+                return cena_litr
+        return None
+    except Exception as e:
+        print(f"Błąd pobierania ceny paliwa: {e}")
+        return None

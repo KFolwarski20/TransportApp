@@ -120,7 +120,7 @@ document.addEventListener("DOMContentLoaded", function () {
             return;
         }
 
-        const przewidywane_godziny = czasTrasySekundy / 3600;
+        const przewidywane_godziny = 1.05 * (czasTrasySekundy / 3600);
         const koniec = new Date(startDate.getTime() + przewidywane_godziny * 3600000);
 
         dataZakonczenia.value = koniec.toLocaleString('pl-PL', {
