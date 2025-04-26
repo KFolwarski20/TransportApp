@@ -6,6 +6,7 @@ from users.forms import CiezarowkaForm, SerwisForm, TankowanieForm
 from .utils import get_cena_paliwa
 from django.contrib import messages
 from datetime import datetime, date
+from decimal import Decimal
 import json
 import math
 
@@ -88,12 +89,13 @@ def historia_tankowania(request, ciez_id):
                     return redirect('historia_tankowania', ciez_id=ciez_id)
             else:
                 tankowanie = form.save(commit=False)
+                tankowanie.kierowca = zlecenie.kierowca
                 tankowanie.ciezarowka = ciezarowka
                 tankowanie.koszt = round(ilosc * cena, 2)
                 tankowanie.save()
 
                 # Aktualizacja paliwa w baku
-                ciezarowka.ciez_paliwo_litry += ilosc
+                ciezarowka.ciez_paliwo_litry = float(Decimal(str(ciezarowka.ciez_paliwo_litry)) + ilosc)
                 ciezarowka.save()
 
                 messages.success(request, f"Zatankowano {ilosc} litrów. Koszt: {tankowanie.koszt} zł.")
