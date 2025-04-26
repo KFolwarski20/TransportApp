@@ -2,7 +2,8 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from users.forms import ZlecenieForm
 from users.models import Zlecenie, Kierowca, Ciezarowka, Tankowanie
-from users.views.utils import get_route_geometry, oblicz_odleglosc, wyslij_sms_do_kierowcy
+from users.views.utils import (get_route_geometry, oblicz_odleglosc, wyslij_sms_do_kierowcy,
+                               oblicz_przewidywany_czas_z_przerwami)
 from django.contrib import messages
 from django.utils.dateparse import parse_datetime
 from django.utils import timezone
@@ -98,7 +99,7 @@ def przypisz_kierowce_ciezarowke(request, id_zlec):
                 koszt_paliwa = float(ciezarowka.ciez_spalanie_na_100km) * (odleglosc / 100) * CENA_PALIWA_ZA_LITR
                 przewidywany_koszt = round(koszt_kierowcy + koszt_paliwa, 2)
 
-                przewidywany_czas = 1.05 * timedelta(seconds=czas_trasy_sek)
+                przewidywany_czas = oblicz_przewidywany_czas_z_przerwami(czas_trasy_sek)
                 przewidywana_data_zakonczenia = data_rozpoczecia_realizacji + przewidywany_czas
 
                 if 'confirm' in request.POST:
@@ -143,7 +144,7 @@ def get_available_kierowcy_ciezarowki(request, id_zlec):
 
     zlecenie = get_object_or_404(Zlecenie, pk=id_zlec)
     odleglosc, _, _, czas_trasy_sek = oblicz_odleglosc(zlecenie.miejsce_odb, zlecenie.miejsce_dost)
-    przewidywany_czas = 1.05 * timedelta(seconds=czas_trasy_sek)
+    przewidywany_czas = oblicz_przewidywany_czas_z_przerwami(czas_trasy_sek)
     data_zakonczenia = data_rozpoczecia + przewidywany_czas
 
     # 🛠️ Pobranie listy zajętych kierowców i ciężarówek

@@ -103,9 +103,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
     let debounceTimeout = null;
 
-    /**
-     * ✅ Obliczanie przewidywanej daty zakończenia oraz czasu realizacji
-     */
     function obliczDateZakonczenia() {
         if (!dataRozpoczecia.value) {
             dataZakonczenia.value = '';
@@ -120,15 +117,41 @@ document.addEventListener("DOMContentLoaded", function () {
             return;
         }
 
-        const przewidywane_godziny = 1.05 * (czasTrasySekundy / 3600);
-        const koniec = new Date(startDate.getTime() + przewidywane_godziny * 3600000);
+        // Obliczenia czasu trasy
+        let czasPoRezerwie = 1.05 * czasTrasySekundy; // +5%
+        let totalCzasSekundy = czasPoRezerwie;
 
+        // Jeśli czas > 4,5h (16200 sekund) i <= 9h (32400 sekund), dodaj 45 minut przerwy
+        if (czasPoRezerwie > 16200 && czasPoRezerwie <= 32400) {
+            totalCzasSekundy += 2700; // 45 min przerwy
+        }
+
+        // Jeśli czas > 9h, dodaj odpoczynki
+        if (czasPoRezerwie > 32400) {
+            const maxJazdaNaDzien = 32400; // 9h jazdy
+            const przerwaDzienna = 2700;    // 45 min
+
+            let czasZRozbiciem = czasPoRezerwie + przerwaDzienna;
+            let dniPelne = Math.floor(czasZRozbiciem / (maxJazdaNaDzien + przerwaDzienna));
+            let pozostalyCzas = czasZRozbiciem % (maxJazdaNaDzien + przerwaDzienna);
+
+            totalCzasSekundy = czasZRozbiciem + dniPelne * 54000; // dodajemy odpoczynek 15h za każdy pełen dzień
+
+            if (pozostalyCzas > maxJazdaNaDzien) {
+                totalCzasSekundy += 54000; // 15h na odpoczynek
+            }
+        }
+
+        const koniec = new Date(startDate.getTime() + totalCzasSekundy * 1000);
+
+        // Wyświetl koniec
         dataZakonczenia.value = koniec.toLocaleString('pl-PL', {
             day: '2-digit', month: '2-digit', year: 'numeric',
             hour: '2-digit', minute: '2-digit'
         });
 
-        const totalMinutes = Math.round(przewidywane_godziny * 60);
+        // Wyświetl czas trwania
+        const totalMinutes = Math.round(totalCzasSekundy / 60);
         const dni = Math.floor(totalMinutes / 1440);
         const godziny = Math.floor((totalMinutes % 1440) / 60);
         const minuty = totalMinutes % 60;
@@ -141,77 +164,59 @@ document.addEventListener("DOMContentLoaded", function () {
 
         czasRealizacji.textContent = czasText;
 
-        // Pobranie dostępnych kierowców i ciężarówek
+        // ✅ Pobierz dostępnych kierowców i ciężarówki
         pobierzDostepnych();
     }
 
-    /**
-     * ✅ Pobieranie dostępnych kierowców i ciężarówek na podstawie daty realizacji
-     */
     function pobierzDostepnych() {
-    const data = dataRozpoczecia.value;
-    if (!data) return;
+        const data = dataRozpoczecia.value;
+        if (!data) return;
 
-    fetch(`/api/get_available_kierowcy_ciezarowki/${id_zlec}/?data_rozpoczecia=${encodeURIComponent(data)}`)
-        .then(response => response.json())
-        .then(data => {
-            console.log("🔹 Otrzymane dane z API:", data);
+        fetch(`/api/get_available_kierowcy_ciezarowki/${id_zlec}/?data_rozpoczecia=${encodeURIComponent(data)}`)
+            .then(response => response.json())
+            .then(data => {
+                console.log("🔹 Otrzymane dane z API:", data);
 
-            // 🔍 Czy mamy dostępne elementy?
-            if (!kierowcaSelect || !ciezarowkaSelect) {
-                console.error("❌ Brak elementów select w DOM!");
-                return;
-            }
+                if (!kierowcaSelect || !ciezarowkaSelect) {
+                    console.error("❌ Brak elementów select w DOM!");
+                    return;
+                }
 
-            // 🛑 Usuń stare opcje
-            kierowcaSelect.innerHTML = "";
-            ciezarowkaSelect.innerHTML = "";
+                kierowcaSelect.innerHTML = "";
+                ciezarowkaSelect.innerHTML = "";
 
-            // ➕ Dodaj placeholdery
-            const kierowcaPlaceholder = new Option("-- Wybierz kierowcę --", "");
-            const ciezarowkaPlaceholder = new Option("-- Wybierz ciężarówkę --", "");
-            kierowcaSelect.appendChild(kierowcaPlaceholder);
-            ciezarowkaSelect.appendChild(ciezarowkaPlaceholder);
+                const kierowcaPlaceholder = new Option("-- Wybierz kierowcę --", "");
+                const ciezarowkaPlaceholder = new Option("-- Wybierz ciężarówkę --", "");
+                kierowcaSelect.appendChild(kierowcaPlaceholder);
+                ciezarowkaSelect.appendChild(ciezarowkaPlaceholder);
 
-            // ✅ Dodaj kierowców
-            if (data.kierowcy.length === 0) {
-                kierowcaSelect.appendChild(new Option("Brak dostępnych kierowców", "", false, false)).disabled = true;
-            } else {
-                data.kierowcy.forEach(k => {
-                    const option = new Option(
-                        `${k.imie} ${k.nazwisko} - ${k.koszt.toFixed(2)} PLN/km`,
-                        k.id
-                    );
-                    option.dataset.koszt = k.koszt.toFixed(2);
-                    kierowcaSelect.appendChild(option);
-                });
-            }
+                if (data.kierowcy.length === 0) {
+                    kierowcaSelect.appendChild(new Option("Brak dostępnych kierowców", "", false, false)).disabled = true;
+                } else {
+                    data.kierowcy.forEach(k => {
+                        const option = new Option(`${k.imie} ${k.nazwisko} - ${k.koszt.toFixed(2)} PLN/km`, k.id);
+                        option.dataset.koszt = k.koszt.toFixed(2);
+                        kierowcaSelect.appendChild(option);
+                    });
+                }
 
-            // ✅ Dodaj ciężarówki
-            if (data.ciezarowki.length === 0) {
-                ciezarowkaSelect.appendChild(new Option("Brak dostępnych ciężarówek", "", false, false)).disabled = true;
-            } else {
-                data.ciezarowki.forEach(c => {
-                    const option = new Option(
-                        `${c.marka} ${c.model} - ${c.koszt.toFixed(2)} PLN`,
-                        c.id
-                    );
-                    option.dataset.koszt = c.koszt.toFixed(2);
-                    ciezarowkaSelect.appendChild(option);
-                });
-            }
+                if (data.ciezarowki.length === 0) {
+                    ciezarowkaSelect.appendChild(new Option("Brak dostępnych ciężarówek", "", false, false)).disabled = true;
+                } else {
+                    data.ciezarowki.forEach(c => {
+                        const option = new Option(`${c.marka} ${c.model} - ${c.koszt.toFixed(2)} PLN`, c.id);
+                        option.dataset.koszt = c.koszt.toFixed(2);
+                        ciezarowkaSelect.appendChild(option);
+                    });
+                }
 
-            kierowcaSelect.disabled = false;
-            ciezarowkaSelect.disabled = false;
-            updateKoszt(); // Aktualizacja kosztu
-        })
-        .catch(error => console.error("❌ Błąd pobierania danych:", error));
-}
+                kierowcaSelect.disabled = false;
+                ciezarowkaSelect.disabled = false;
+                updateKoszt();
+            })
+            .catch(error => console.error("❌ Błąd pobierania danych:", error));
+    }
 
-
-    /**
-     * ✅ Obliczanie łącznego kosztu zlecenia
-     */
     function updateKoszt() {
         const kierowcaKoszt = parseFloat(kierowcaSelect.selectedOptions[0]?.dataset.koszt || 0);
         const ciezarowkaKoszt = parseFloat(ciezarowkaSelect.selectedOptions[0]?.dataset.koszt || 0);
@@ -224,13 +229,9 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }
 
-    /**
-     * ✅ Nasłuchiwanie na zmiany i akcje użytkownika
-     */
     dataRozpoczecia.addEventListener('input', () => {
         clearTimeout(debounceTimeout);
 
-        // Zablokuj selecty i pokaż "ładowanie..."
         kierowcaSelect.innerHTML = "";
         ciezarowkaSelect.innerHTML = "";
         kierowcaSelect.appendChild(new Option("⏳ Ładowanie kierowców...", "", false, false)).disabled = true;
@@ -242,15 +243,14 @@ document.addEventListener("DOMContentLoaded", function () {
             obliczDateZakonczenia();
         }, 2500);
     });
+
     kierowcaSelect.addEventListener('change', updateKoszt);
     ciezarowkaSelect.addEventListener('change', updateKoszt);
 
-    // ⏳ Ustaw domyślną datę i załaduj API z opóźnieniem
     const teraz = new Date();
     teraz.setMinutes(teraz.getMinutes() - teraz.getTimezoneOffset());
     dataRozpoczecia.value = teraz.toISOString().slice(0, 16);
 
-    // 🔒 Zablokuj selecty na start i pokaż "ładowanie..."
     kierowcaSelect.innerHTML = "";
     ciezarowkaSelect.innerHTML = "";
     kierowcaSelect.appendChild(new Option("⏳ Ładowanie kierowców...", "", false, false)).disabled = true;
@@ -258,7 +258,6 @@ document.addEventListener("DOMContentLoaded", function () {
     kierowcaSelect.disabled = true;
     ciezarowkaSelect.disabled = true;
 
-    // 🕒 Załaduj dostępnych po 3 sekundach
     setTimeout(() => {
         obliczDateZakonczenia();
     }, 5);

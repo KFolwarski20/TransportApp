@@ -186,6 +186,9 @@ class ZlecenieForm(forms.ModelForm):
     def clean_termin_realizacji(self):
         termin_realizacji = self.cleaned_data.get('termin_realizacji')
 
+        if termin_realizacji is None:
+            raise ValidationError("Musisz podać termin realizacji.")
+
         if termin_realizacji < timezone.now():
             raise ValidationError("Termin realizacji nie może być wcześniejszy niż bieżący czas.")
 

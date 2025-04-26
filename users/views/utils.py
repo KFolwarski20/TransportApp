@@ -4,7 +4,7 @@ import requests
 from django.conf import settings
 from django.http import JsonResponse
 from django.views.decorators.http import require_GET
-from datetime import datetime
+from datetime import datetime, timedelta
 
 
 ORS_API_KEY = "5b3ce3597851110001cf62485a5adc7a079347dbb10ae922b01de893"
@@ -154,3 +154,35 @@ def pobierz_cene_paliwa(data=None):
     except Exception as e:
         print(f"Błąd pobierania ceny paliwa: {e}")
         return None
+
+
+def oblicz_przewidywany_czas_z_przerwami(czas_trasy_sek):
+    # Czas podstawowy powiększony o 5% rezerwy
+    czas_po_rezerwie = 1.05 * czas_trasy_sek
+
+    total_czas = czas_po_rezerwie
+
+    # Dodaj 45 minut przerwy jeśli czas trwania > 4.5h (16 200 sekund) ale mniej niż 9h
+    if 16200 < czas_po_rezerwie <= 32400:
+        total_czas += 2700  # 45 minut = 2700 sekund
+
+    # Jeśli trasa trwa dłużej niż 9h (32 400 sekund)
+    if czas_po_rezerwie > 32400:
+        dzienna_maksymalna_jazda = 32400  # 9h w sekundach
+        dzienna_przerwa = 2700  # 45 minut
+        czas_po_przerwie = czas_po_rezerwie + dzienna_przerwa  # pierwsza przerwa
+
+        # liczba pełnych dni jazdy (9h + przerwa na dzień)
+        dni_pelne = int(czas_po_przerwie // (dzienna_maksymalna_jazda + dzienna_przerwa))
+
+        # pozostały czas jazdy po pełnych dniach
+        pozostaly_czas = czas_po_przerwie % (dzienna_maksymalna_jazda + dzienna_przerwa)
+
+        # każdy dzień wymaga dodatkowo odpoczynku doby (czyli 15h)
+        total_czas = czas_po_przerwie + dni_pelne * 54000  # 54000 sekund = 15h
+
+        # Jeśli pozostały czas > 9h, dodaj kolejny odpoczynek (bo by przekroczył dzienny limit)
+        if pozostaly_czas > dzienna_maksymalna_jazda:
+            total_czas += 54000  # 15h na odpoczynek
+
+    return timedelta(seconds=round(total_czas))
