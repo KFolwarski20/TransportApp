@@ -100,7 +100,7 @@ def eksportuj_kierowcow_excel(request):
 
     # Nagłówki
     naglowki = ["ID", "Imię", "Nazwisko", "Wiek", "Przejechane km", "Doświadczenie", "Stawka za km",
-                "Lata doświadczenia"]
+                "Liczba wykroczeń"]
     sheet.append(naglowki)
 
     # Dane
