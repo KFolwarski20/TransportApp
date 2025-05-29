@@ -4,7 +4,7 @@ from django.shortcuts import redirect
 from users.views.auth_views import register_view, login_view, logout_view
 from users.views.dashboard_views import menu_glowne_view, analiza_finansowa
 from users.views.kierowca_views import (zarzadzaj_kierowcami, dodaj_kierowce, edytuj_kierowce, usun_kierowce,
-                                        szczegoly_kierowcy, czas_kierowcy)
+                                        szczegoly_kierowcy, czas_kierowcy, eksportuj_kierowcow_excel)
 from users.views.ciezarowka_views import (zarzadzaj_ciezarowkami, dodaj_ciezarowke, edytuj_ciezarowke, usun_ciezarowke,
                                           szczegoly_ciezarowki, historia_serwisow, historia_tankowania, czas_ciezarowki)
 from users.views.zlecenie_views import (dodaj_zlecenie, zamknij_zlecenie, zarzadzaj_zleceniami, edytuj_zlecenie,
@@ -27,6 +27,7 @@ urlpatterns = [
                                                                                     rok=date.today().year),
                                                                                     name="czas_kierowcy_redirect"
          ),
+    path('kierowcy/eksport/', eksportuj_kierowcow_excel, name='eksportuj_kierowcow_excel'),
     path("ciezarowki/", zarzadzaj_ciezarowkami, name="zarzadzaj_ciezarowkami"),
     path("ciezarowki/dodaj/", dodaj_ciezarowke, name="dodaj_ciezarowke"),
     path("ciezarowki/szczegoly/<int:ciez_id>/", szczegoly_ciezarowki, name="szczegoly_ciezarowki"),

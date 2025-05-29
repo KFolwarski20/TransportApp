@@ -1,9 +1,11 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
+from django.http import HttpResponse
 from users.models import Kierowca, Zlecenie
 from users.forms import KierowcaForm
 from datetime import datetime
 import json
+import openpyxl
 
 
 @login_required
@@ -88,3 +90,34 @@ def czas_kierowcy(request, kier_id, rok=2025):
         "historia": historia
     }
     return render(request, "users/kierowcy/czas_kierowcy.html", context)
+
+
+@login_required
+def eksportuj_kierowcow_excel(request):
+    workbook = openpyxl.Workbook()
+    sheet = workbook.active
+    sheet.title = "Kierowcy"
+
+    # Nagłówki
+    naglowki = ["ID", "Imię", "Nazwisko", "Wiek", "Przejechane km", "Doświadczenie", "Stawka za km",
+                "Lata doświadczenia"]
+    sheet.append(naglowki)
+
+    # Dane
+    for kierowca in Kierowca.objects.all():
+        sheet.append([
+            kierowca.kier_id,
+            kierowca.kier_imie,
+            kierowca.kier_nazwisko,
+            kierowca.oblicz_wiek(),
+            kierowca.kier_przejech_km,
+            kierowca.kier_lata_dosw,
+            float(kierowca.stawka_za_km),
+            kierowca.kier_liczba_wykroczen,
+        ])
+
+    # Odpowiedź jako plik do pobrania
+    response = HttpResponse(content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+    response["Content-Disposition"] = f'attachment; filename="Kierowcy_{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}.xlsx"'
+    workbook.save(response)
+    return response
