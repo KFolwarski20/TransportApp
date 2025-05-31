@@ -6,7 +6,8 @@ from users.views.dashboard_views import menu_glowne_view, analiza_finansowa
 from users.views.kierowca_views import (zarzadzaj_kierowcami, dodaj_kierowce, edytuj_kierowce, usun_kierowce,
                                         szczegoly_kierowcy, czas_kierowcy, eksportuj_kierowcow_excel)
 from users.views.ciezarowka_views import (zarzadzaj_ciezarowkami, dodaj_ciezarowke, edytuj_ciezarowke, usun_ciezarowke,
-                                          szczegoly_ciezarowki, historia_serwisow, historia_tankowania, czas_ciezarowki)
+                                          szczegoly_ciezarowki, historia_serwisow, historia_tankowania, czas_ciezarowki,
+                                          eksportuj_ciezarowki_excel)
 from users.views.zlecenie_views import (dodaj_zlecenie, zamknij_zlecenie, zarzadzaj_zleceniami, edytuj_zlecenie,
                                         przypisz_kierowce_ciezarowke, usun_zlecenie, szczegoly_zlecenia,
                                         cofnij_status_zlecenia, historia_zlecenia)
@@ -41,6 +42,7 @@ urlpatterns = [
          ),
     path("ciezarowki/edytuj/<int:ciez_id>/", edytuj_ciezarowke, name="edytuj_ciezarowke"),
     path("ciezarowki/usun/<int:ciez_id>/", usun_ciezarowke, name="usun_ciezarowke"),
+    path('ciezarowki/eksport/', eksportuj_ciezarowki_excel, name='eksportuj_ciezarowki_excel'),
     path("zlecenia/", zarzadzaj_zleceniami, name="zarzadzaj_zleceniami"),
     path("zlecenia/dodaj/", dodaj_zlecenie, name="dodaj_zlecenie"),
     path("zlecenia/edytuj/<int:id_zlec>/", edytuj_zlecenie, name="edytuj_zlecenie"),

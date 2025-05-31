@@ -1,6 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.core.serializers.json import DjangoJSONEncoder
+from django.http import HttpResponse
 from users.models import Ciezarowka, Zlecenie, Serwis, Tankowanie, Kierowca
 from users.forms import CiezarowkaForm, SerwisForm, TankowanieForm
 from .utils import get_cena_paliwa
@@ -9,6 +10,7 @@ from datetime import datetime, date
 from decimal import Decimal
 import json
 import math
+import openpyxl
 
 
 @login_required
@@ -184,3 +186,39 @@ def usun_ciezarowke(request, ciez_id):
         ciezarowka.delete()
         return redirect('zarzadzaj_ciezarowkami')
     return render(request, "users/ciezarowki/usun_ciezarowke.html", {"ciezarowka": ciezarowka})
+
+
+@login_required
+def eksportuj_ciezarowki_excel(request):
+    workbook = openpyxl.Workbook()
+    sheet = workbook.active
+    sheet.title = "Ciężarówki"
+
+    # Nagłówki
+    naglowki = ["ID", "Marka", "Model", "Moc", "Nr rejestracyjny", "Przebieg", "Rok produkcji",
+                "Data zakupu", "Masa własna", "Masa ładunku", "Dopuszczalna masa całkowita", "Spalanie l/100km"]
+    sheet.append(naglowki)
+
+    # Dane
+    for ciezarowka in Ciezarowka.objects.all():
+        sheet.append([
+            ciezarowka.ciez_id,
+            ciezarowka.ciez_marka,
+            ciezarowka.ciez_model,
+            float(ciezarowka.ciez_moc),
+            ciezarowka.ciez_nr_rejestr,
+            float(ciezarowka.ciez_przebieg),
+            ciezarowka.ciez_rok_prod,
+            ciezarowka.ciez_data_zakupu,
+            float(ciezarowka.ciez_masa_wlasna),
+            float(ciezarowka.ciez_masa_ladunku),
+            float(ciezarowka.ciez_dop_masa_calk),
+            float(ciezarowka.ciez_spalanie_na_100km),
+        ])
+
+    # Odpowiedź jako plik do pobrania
+    response = HttpResponse(content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+    response["Content-Disposition"] = \
+        f'attachment; filename="Ciezarowki_{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}.xlsx"'
+    workbook.save(response)
+    return response
