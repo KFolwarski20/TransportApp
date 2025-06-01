@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{%  load custom_filters %}
 {% block title %}Analiza Finansowa{% endblock %}
 
 {% block content %}
@@ -22,19 +23,19 @@
                         <div class="col-md-4">
                             <div class="card bg-light shadow-sm p-3">
                                 <h5 class="fw-bold">📈 Średni przychód</h5>
-                                <p class="fs-4 fw-bold text-success">{{ srednia_przychod|floatformat:2 }} PLN</p>
+                                <p class="fs-4 fw-bold text-success">{{ srednia_przychod|pl_number_format }} PLN</p>
                             </div>
                         </div>
                         <div class="col-md-4">
                             <div class="card bg-light shadow-sm p-3">
                                 <h5 class="fw-bold">📉 Średni koszt</h5>
-                                <p class="fs-4 fw-bold text-danger">{{ srednia_koszt|floatformat:2 }} PLN</p>
+                                <p class="fs-4 fw-bold text-danger">{{ srednia_koszt|pl_number_format }} PLN</p>
                             </div>
                         </div>
                         <div class="col-md-4">
                             <div class="card bg-light shadow-sm p-3">
                                 <h5 class="fw-bold">💰 Średni zysk</h5>
-                                <p class="fs-4 fw-bold text-primary">{{ srednia_zysk|floatformat:2 }} PLN</p>
+                                <p class="fs-4 fw-bold text-primary">{{ srednia_zysk|pl_number_format }} PLN</p>
                             </div>
                         </div>
                     </div>
@@ -43,19 +44,19 @@
                         <div class="col-md-4">
                             <div class="card bg-light shadow-sm p-3">
                                 <h5 class="fw-bold">🔽 Min. przychód</h5>
-                                <p class="fs-4 fw-bold text-success">{{ min_przychod|floatformat:2 }} PLN</p>
+                                <p class="fs-4 fw-bold text-success">{{ min_przychod|pl_number_format }} PLN</p>
                             </div>
                         </div>
                         <div class="col-md-4">
                             <div class="card bg-light shadow-sm p-3">
                                 <h5 class="fw-bold">🔽 Min. koszt</h5>
-                                <p class="fs-4 fw-bold text-danger">{{ min_koszt|floatformat:2 }} PLN</p>
+                                <p class="fs-4 fw-bold text-danger">{{ min_koszt|pl_number_format }} PLN</p>
                             </div>
                         </div>
                         <div class="col-md-4">
                             <div class="card bg-light shadow-sm p-3">
                                 <h5 class="fw-bold">🔽 Min. zysk</h5>
-                                <p class="fs-4 fw-bold text-primary">{{ min_zysk|floatformat:2 }} PLN</p>
+                                <p class="fs-4 fw-bold text-primary">{{ min_zysk|pl_number_format }} PLN</p>
                             </div>
                         </div>
                     </div>
@@ -64,19 +65,19 @@
                         <div class="col-md-4">
                             <div class="card bg-light shadow-sm p-3">
                                 <h5 class="fw-bold">🔼 Max. przychód</h5>
-                                <p class="fs-4 fw-bold text-success">{{ max_przychod|floatformat:2 }} PLN</p>
+                                <p class="fs-4 fw-bold text-success">{{ max_przychod|pl_number_format }} PLN</p>
                             </div>
                         </div>
                         <div class="col-md-4">
                             <div class="card bg-light shadow-sm p-3">
                                 <h5 class="fw-bold">🔼 Max. koszt</h5>
-                                <p class="fs-4 fw-bold text-danger">{{ max_koszt|floatformat:2 }} PLN</p>
+                                <p class="fs-4 fw-bold text-danger">{{ max_koszt|pl_number_format }} PLN</p>
                             </div>
                         </div>
                         <div class="col-md-4">
                             <div class="card bg-light shadow-sm p-3">
                                 <h5 class="fw-bold">🔼 Max. zysk</h5>
-                                <p class="fs-4 fw-bold text-primary">{{ max_zysk|floatformat:2 }} PLN</p>
+                                <p class="fs-4 fw-bold text-primary">{{ max_zysk|pl_number_format }} PLN</p>
                             </div>
                         </div>
                     </div>
@@ -85,19 +86,19 @@
                         <div class="col-md-4">
                             <div class="card bg-light shadow-sm p-3">
                                 <h5 class="fw-bold">📊 Mediana przychód</h5>
-                                <p class="fs-4 fw-bold text-success">{{ mediana_przychod|floatformat:2 }} PLN</p>
+                                <p class="fs-4 fw-bold text-success">{{ mediana_przychod|pl_number_format }} PLN</p>
                             </div>
                         </div>
                         <div class="col-md-4">
                             <div class="card bg-light shadow-sm p-3">
                                 <h5 class="fw-bold">📊 Mediana koszt</h5>
-                                <p class="fs-4 fw-bold text-danger">{{ mediana_koszt|floatformat:2 }} PLN</p>
+                                <p class="fs-4 fw-bold text-danger">{{ mediana_koszt|pl_number_format }} PLN</p>
                             </div>
                         </div>
                         <div class="col-md-4">
                             <div class="card bg-light shadow-sm p-3">
                                 <h5 class="fw-bold">📊 Mediana zysk</h5>
-                                <p class="fs-4 fw-bold text-primary">{{ mediana_zysk|floatformat:2 }} PLN</p>
+                                <p class="fs-4 fw-bold text-primary">{{ mediana_zysk|pl_number_format }} PLN</p>
                             </div>
                         </div>
                     </div>
@@ -106,19 +107,19 @@
                         <div class="col-md-4">
                             <div class="card bg-light shadow-sm p-3">
                                 <h5 class="fw-bold">📊 Odch. stand. przychód</h5>
-                                <p class="fs-4 fw-bold text-success">{{ odchylenie_przychod|floatformat:2 }} PLN</p>
+                                <p class="fs-4 fw-bold text-success">{{ odchylenie_przychod|pl_number_format }} PLN</p>
                             </div>
                         </div>
                         <div class="col-md-4">
                             <div class="card bg-light shadow-sm p-3">
                                 <h5 class="fw-bold">📊 Odch. stand. koszt</h5>
-                                <p class="fs-4 fw-bold text-danger">{{ odchylenie_koszt|floatformat:2 }} PLN</p>
+                                <p class="fs-4 fw-bold text-danger">{{ odchylenie_koszt|pl_number_format }} PLN</p>
                             </div>
                         </div>
                         <div class="col-md-4">
                             <div class="card bg-light shadow-sm p-3">
                                 <h5 class="fw-bold">📊 Odch. stand. zysk</h5>
-                                <p class="fs-4 fw-bold text-primary">{{ odchylenie_zysk|floatformat:2 }} PLN</p>
+                                <p class="fs-4 fw-bold text-primary">{{ odchylenie_zysk|pl_number_format }} PLN</p>
                             </div>
                         </div>
                     </div>
