@@ -71,10 +71,16 @@ def przypisz_kierowce_ciezarowke(request, id_zlec):
     error_message = None
     zlecenie.odleglosc_km, start_coords, end_coords, czas_trasy_sek = oblicz_odleglosc(zlecenie.miejsce_odb,
                                                                                        zlecenie.miejsce_dost)
+    odleglosc_odbior, start_coords_wyj, end_coords_odbior, czas_trasy_odbior = oblicz_odleglosc(zlecenie.miejsce_wyj,
+                                                                                                zlecenie.miejsce_odb)
+    zlecenie.odleglosc_km = zlecenie.odleglosc_km + odleglosc_odbior
+    czas_trasy_sek = czas_trasy_sek + czas_trasy_odbior
     zlecenie.save()
 
     odleglosc = float(zlecenie.odleglosc_km or 0)
     route_geometry = get_route_geometry(start_coords, end_coords) if start_coords and end_coords else None
+    route_geometry_from_start_to_pick = get_route_geometry(start_coords_wyj, end_coords_odbior) if (
+            start_coords_wyj and end_coords_odbior) else None
     CENA_PALIWA_ZA_LITR = pobierz_cene_paliwa()
 
     if request.method == "POST":
@@ -120,9 +126,11 @@ def przypisz_kierowce_ciezarowke(request, id_zlec):
         "zlecenie": zlecenie,
         "id_zlec": id_zlec,
         "odleglosc": odleglosc,
+        "start_coords_wyj": start_coords_wyj,
         "start_coords": start_coords,
         "end_coords": end_coords,
         "route_geometry": route_geometry,
+        "route_geometry_from_start_to_pick": route_geometry_from_start_to_pick,
         "error_message": error_message,
         "czas_trasy_sek": czas_trasy_sek,
     }
@@ -172,7 +180,7 @@ def get_available_kierowcy_ciezarowki(request, id_zlec):
     rok_realizacji = data_rozpoczecia.year
     godziny_przewidywane = przewidywany_czas.total_seconds() / 3600
     LIMIT_GODZIN = 168
-    CENA_PALIWA_ZA_LITR = pobierz_cene_paliwa()
+    CENA_PALIWA_ZA_LITR = pobierz_cene_paliwa('2025-05-31')
 
     # Filtrowanie kierowców którzy nie przekroczą limitu
     dostepni_kierowcy_z_limitem = []

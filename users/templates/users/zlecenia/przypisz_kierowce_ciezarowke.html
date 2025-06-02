@@ -194,7 +194,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     kierowcaSelect.appendChild(new Option("Brak dostępnych kierowców", "", false, false)).disabled = true;
                 } else {
                     data.kierowcy.forEach(k => {
-                        const option = new Option(`${k.imie} ${k.nazwisko} - ${k.koszt.toFixed(2)} PLN/km`, k.id);
+                        const option = new Option(`${k.imie} ${k.nazwisko} - ${k.koszt.toFixed(2)} PLN`, k.id);
                         option.dataset.koszt = k.koszt.toFixed(2);
                         kierowcaSelect.appendChild(option);
                     });
@@ -241,7 +241,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
         debounceTimeout = setTimeout(() => {
             obliczDateZakonczenia();
-        }, 2500);
+        }, 0);
     });
 
     kierowcaSelect.addEventListener('change', updateKoszt);
@@ -268,9 +268,11 @@ document.addEventListener("DOMContentLoaded", function () {
 document.addEventListener("DOMContentLoaded", function () {
     console.log("📍 Inicjalizacja mapy...");
 
+    let startCoordsWyj = {{ start_coords_wyj }};
     let startCoords = {{ start_coords|safe }};
     let endCoords = {{ end_coords|safe }};
     let routeGeometry = {{ route_geometry|safe }};
+    let routeGeometryFromStartToPick = {{ route_geometry_from_start_to_pick|safe }};
 
     if (!startCoords || !endCoords || !routeGeometry || routeGeometry.length === 0) {
         console.error("🚨 Brak danych do wyświetlenia trasy!");
@@ -287,6 +289,15 @@ document.addEventListener("DOMContentLoaded", function () {
     L.tileLayer("https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png", {
         attribution: '&copy; OpenStreetMap contributors'
     }).addTo(map);
+
+    // 📦 Znacznik miejsca wyjazdu (żółty)
+    L.marker([startCoordsWyj[1], startCoordsWyj[0]], {
+        icon: L.icon({
+            iconUrl: "https://maps.google.com/mapfiles/ms/icons/yellow-dot.png",
+            iconSize: [40, 40],
+            iconAnchor: [20, 40]
+        })
+    }).addTo(map).bindPopup("<b>🏁 Miejsce wyjazdu</b><br>{{ zlecenie.miejsce_wyj }}");
 
     // 📍 Znacznik miejsca odbioru (czerwony)
     L.marker([startCoords[1], startCoords[0]], {
@@ -306,23 +317,53 @@ document.addEventListener("DOMContentLoaded", function () {
         })
     }).addTo(map).bindPopup("<b>📦 Miejsce dostawy</b><br>{{ zlecenie.miejsce_dost }}");
 
-    // 📌 Przekształcenie współrzędnych do formatu Leaflet ([lat, lon])
+    // 🔄 Trasy
+    const routeStartPickLatLngs = routeGeometryFromStartToPick.map(coord => [coord[1], coord[0]]);
     const routeLatLngs = routeGeometry.map(coord => [coord[1], coord[0]]);
 
-    // 🚚 Trasa przejazdu
+    const routeLineStartPick = L.polyline(routeStartPickLatLngs, {
+        color: "red",
+        weight: 5,
+        opacity: 1,
+        dashArray: "5, 5",
+        lineJoin: "round"
+    }).addTo(map);
+
     const routeLine = L.polyline(routeLatLngs, {
         color: "blue",
         weight: 6,
-        opacity: 0.75,
-        lineJoin: "round",
-        dashArray: "10, 5"  // Dla efektu przerywanej trasy
+        opacity: 0.9,
+        lineJoin: "round"
     }).addTo(map);
 
-    // 🎯 Centrowanie mapy na trasie
-    map.fitBounds(routeLine.getBounds(), { padding: [30, 30] });
+    // 🎯 Dopasowanie widoku do wszystkich punktów
+    const allPoints = [...routeStartPickLatLngs, ...routeLatLngs];
+    map.fitBounds(L.latLngBounds(allPoints), { padding: [30, 30] });
 
-    // 🔍 Dodanie przycisków zoomowania
+    // 🔍 Przyciski zoomowania
     L.control.zoom({ position: "topright" }).addTo(map);
+
+    // 📜 Legenda
+    const legend = L.control({ position: "bottomright" });
+
+    legend.onAdd = function () {
+        const div = L.DomUtil.create("div", "info legend");
+        div.style.background = "white";
+        div.style.padding = "10px 12px";
+        div.style.borderRadius = "8px";
+        div.style.boxShadow = "0 0 8px rgba(0, 0, 0, 0.3)";
+        div.style.fontSize = "13px";
+        div.style.lineHeight = "1.5";
+        div.style.color = "#333";
+        div.innerHTML = `
+            <h6><strong>Legenda</strong></h6>
+            <i style="background: #ff0000; border-radius:2px; width: 14px; height: 4px; display: inline-block; margin-right: 6px;"></i> Miejsce wyjazdu → Odbiór<br>
+            <i style="background: blue; border-radius:2px; width: 14px; height: 4px; display: inline-block; margin-right: 6px;"></i> Odbiór → Dostawa
+        `;
+        return div;
+    };
+
+    legend.addTo(map);
 });
 </script>
 

@@ -148,6 +148,7 @@ class Zlecenie(models.Model):
     ]
 
     id_zlec = models.AutoField(primary_key=True)
+    miejsce_wyj = models.CharField(max_length=255, verbose_name="Miejsce wyjazdu")
     miejsce_odb = models.CharField(max_length=255, verbose_name="Miejsce odbioru")
     miejsce_dost = models.CharField(max_length=255, verbose_name="Miejsce dostawy")
     przychod = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Przychód (PLN)")

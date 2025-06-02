@@ -4,6 +4,9 @@ from statistics import mean, median, stdev
 from users.models import Zlecenie, Kierowca, Ciezarowka
 import json
 from django.db.models import F, Sum
+import calendar
+from collections import defaultdict
+from datetime import datetime
 
 
 @login_required
@@ -71,15 +74,77 @@ def analiza_finansowa(request):
     na_czas = zamkniete_zlecenia.filter(rzeczywista_data_zakonczenia__lte=F('termin_realizacji')).count()
     opoznienia = zamkniete_zlecenia.filter(rzeczywista_data_zakonczenia__gt=F('termin_realizacji')).count()
 
-    # Wskaźnik wykorzystania floty
-    wszystkie_ciezarowki = Ciezarowka.objects.count()
-    uzyte_w_zleceniach = Ciezarowka.objects.filter(zlecenie__status='zamkniete').distinct().count()
-    wykorzystanie_floty = round((uzyte_w_zleceniach / wszystkie_ciezarowki) * 100, 2) if wszystkie_ciezarowki else 0
+    dzisiaj = datetime.today()
+    aktualny_miesiac = dzisiaj.strftime('%Y-%m')
 
-    # Wskaźnik wykorzystania kierowcow
-    wszyscy_kierowcy = Kierowca.objects.count()
-    uzyte_w_zleceniach = Kierowca.objects.filter(zlecenie__status='zamkniete').distinct().count()
-    wykorzystanie_kierowcow = round((uzyte_w_zleceniach / wszyscy_kierowcy) * 100, 2) if wszyscy_kierowcy else 0
+    # 🔹 Pobranie miesięcy (unikalne YYYY-MM tylko z przeszłości i bieżącego)
+    miesiace = sorted(set(
+        z.rzeczywista_data_zakonczenia.strftime('%Y-%m')
+        for z in zamkniete_zlecenia
+        if z.rzeczywista_data_zakonczenia and z.rzeczywista_data_zakonczenia.strftime('%Y-%m') <= aktualny_miesiac
+    ))
+
+    # 🔹 Wskaźnik wykorzystania ciężarówek – uśredniony % czasu pracy
+    ciezarowki = Ciezarowka.objects.all()
+    godziny_ciezarowek = {m: defaultdict(float) for m in miesiace}
+
+    for ciezarowka in ciezarowki:
+        zlecenia = Zlecenie.objects.filter(
+            status="zamkniete",
+            ciezarowka=ciezarowka,
+            rzeczywista_data_zakonczenia__year__in=[int(m[:4]) for m in miesiace]
+        )
+        for z in zlecenia:
+            if z.rzeczywista_data_rozpoczecia and z.rzeczywista_data_zakonczenia:
+                czas_trwania = (z.rzeczywista_data_zakonczenia - z.rzeczywista_data_rozpoczecia).total_seconds() / 3600
+                miesiac_klucz = z.rzeczywista_data_zakonczenia.strftime("%Y-%m")
+                if miesiac_klucz in miesiace:
+                    godziny_ciezarowek[miesiac_klucz][ciezarowka.ciez_id] += czas_trwania
+
+    wykorzystanie_ciezarowek_miesieczne = []
+
+    for miesiac in miesiace:
+        rok_, mies_ = map(int, miesiac.split("-"))
+        max_godz_miesiac = calendar.monthrange(rok_, mies_)[1] * 24
+
+        procenty = [
+            (godziny / max_godz_miesiac) * 100
+            for godziny in godziny_ciezarowek[miesiac].values()
+        ]
+        wykorzystanie_ciezarowek_miesieczne.append(round(sum(procenty) / len(ciezarowki), 2) if ciezarowki else 0)
+
+    srednie_wykorzystanie_ciezarowek = round(sum(wykorzystanie_ciezarowek_miesieczne) / len(miesiace),
+                                             2) if miesiace else 0
+
+    # 🔹 Wskaźnik wykorzystania kierowców – uśredniony % czasu pracy
+    kierowcy = Kierowca.objects.all()
+    godziny_kierowcow = {m: defaultdict(float) for m in miesiace}
+
+    for kierowca in kierowcy:
+        zlecenia = Zlecenie.objects.filter(
+            status="zamkniete",
+            kierowca=kierowca,
+            rzeczywista_data_zakonczenia__year__in=[int(m[:4]) for m in miesiace]
+        )
+        for z in zlecenia:
+            if z.rzeczywista_data_rozpoczecia and z.rzeczywista_data_zakonczenia:
+                czas_trwania = (z.rzeczywista_data_zakonczenia - z.rzeczywista_data_rozpoczecia).total_seconds() / 3600
+                miesiac_klucz = z.rzeczywista_data_zakonczenia.strftime("%Y-%m")
+                if miesiac_klucz in miesiace:
+                    godziny_kierowcow[miesiac_klucz][kierowca.kier_id] += czas_trwania
+
+    wykorzystanie_miesieczne = []
+
+    for miesiac in miesiace:
+        max_godz_miesiac = 168  # limit 168h
+
+        procenty = [
+            (godziny / max_godz_miesiac) * 100
+            for godziny in godziny_kierowcow[miesiac].values()
+        ]
+        wykorzystanie_miesieczne.append(round(sum(procenty) / len(kierowcy), 2) if kierowcy else 0)
+
+    srednie_wykorzystanie_kierowcow = round(sum(wykorzystanie_miesieczne) / len(miesiace), 2) if miesiace else 0
 
     # 🔹 Konwersja do JSON
     context = {
@@ -106,8 +171,8 @@ def analiza_finansowa(request):
         "terminowosc_json": json.dumps([na_czas, opoznienia]),
         "rodzaje_towarow_json": json.dumps(towary_ilosc),
         "rodzaje_towarow_labels_json": json.dumps(unikalne_towary),
-        "wykorzystanie_floty": wykorzystanie_floty,
-        "wykorzystanie_kierowcow": wykorzystanie_kierowcow,
+        "wykorzystanie_ciezarowek_procent": srednie_wykorzystanie_ciezarowek,
+        "wykorzystanie_kierowcow_procent": srednie_wykorzystanie_kierowcow,
     }
 
     return render(request, "users/analiza_finansowa.html", context)
